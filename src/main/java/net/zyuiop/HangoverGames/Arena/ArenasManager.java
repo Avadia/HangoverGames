@@ -144,6 +144,13 @@ public class ArenasManager {
 		Bukkit.getLogger().info("[ArenaLoad] Task ended. "+arenas.size()+" arenas loaded.");
 	}
 
+	public void disable() {
+		for (Arena a : arenas.values()) {
+			Bukkit.getLogger().info(">> Disabling arena "+a.arenaName);
+			a.endGame();
+		}
+	}
+	
 	public String finishJoin(Player p) {
 		VirtualPlayer player = new VirtualPlayer(p);
 		if (!isAttempted(player)) {

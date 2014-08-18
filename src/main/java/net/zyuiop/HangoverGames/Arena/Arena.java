@@ -18,6 +18,7 @@ import net.zyuiop.HangoverGames.Network.Status;
 import net.zyuiop.HangoverGames.Tasks.BeginTimer;
 import net.zyuiop.HangoverGames.Tasks.LolNoise;
 import net.zyuiop.coinsManager.CoinsManager;
+import net.zyuiop.statsapi.StatsApi;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -147,14 +148,6 @@ public class Arena {
 		for (VirtualPlayer joueur : removal) {
 			players.remove(joueur);
 		}
-		
-		// Item a give
-		ItemStack change = new ItemStack(Material.ITEM_FRAME, 1);
-		ItemMeta changemeta = change.getItemMeta();
-		
-		changemeta.setDisplayName(ChatColor.RED + "Changer d'arène");
-		change.setItemMeta(changemeta);
-		
 
 		int slot = 10;
 		for (Alcool a : Alcool.values()) {
@@ -170,10 +163,10 @@ public class Arena {
 	    bm.setTitle("Règles du jeu");
 	    ArrayList<String> pages = new ArrayList<String>();
 	    // Typo?
-	    pages.add(ChatColor.GOLD+"Bienvenue dans les "+ChatColor.DARK_AQUA+"Hangover Games"+ChatColor.DARK_GREEN+" ! \n\n > Sommaire : "+ChatColor.BLACK+"\n\n P.2: Principe du jeu \n P.3: Fonctionnement");
-	    pages.add(ChatColor.DARK_GREEN+"Principe du jeu :"+ChatColor.BLACK+"\n\nLe but du jeu est de boire le plus possible pour être le premier a avoir 12 grammes d'alcool dans le sang. Certains alcools font vomir et perdre de l'alcool.");
-	    pages.add(ChatColor.DARK_GREEN+"Fonctionnement :"+ChatColor.BLACK+"\n\n- Il y a 3 marmites réparties sur la map. Remplis ta bouteille dans une marmite et obtiens un alcool au hasard. La marmite disparait et réaparait a un autre endroit de la map.");
-	    pages.add(ChatColor.DARK_GREEN+"Fonctionnement :"+ChatColor.BLACK+"\n\n- Bois la bouteille et gagne / perd des points\n- N'hésite pas à taper tes amis pour échanger ta bouteille si l'alcool ne te plait pas !\n- Le premier à "+ChatColor.DARK_AQUA+"12 points"+ChatColor.BLACK+" gagne.");
+	    pages.add(ChatColor.GOLD+"Bienvenue dans les "+ChatColor.DARK_AQUA+"Hangover Games"+ChatColor.DARK_GREEN+" ! \n\n > Sommaire : "+ChatColor.BLACK+"\n\n P.2: Principe du jeu \n P.3: Fonctionnement\n\n"+ChatColor.RED+"L'abus d'alcool est dangereux pour la santé.\n\n"+ChatColor.BLACK+"Jeu : zyuiop\nMaps : Amalgar");
+	    pages.add(ChatColor.DARK_GREEN+"Principe du jeu :"+ChatColor.BLACK+"\n\nLe but du jeu est de boire le plus possible pour être le premier à avoir 15 grammes d'alcool dans le sang. Certains alcools font vomir et perdre de l'alcool.");
+	    pages.add(ChatColor.DARK_GREEN+"Fonctionnement :"+ChatColor.BLACK+"\n\n- Il y a 3 marmites réparties sur la map. Remplis ta bouteille dans une marmite et obtiens un alcool au hasard. La marmite disparait et réaparait à un autre endroit de la map.");
+	    pages.add(ChatColor.DARK_GREEN+"Fonctionnement :"+ChatColor.BLACK+"\n\n- Bois la bouteille et gagne / perd des points\n- N'hésite pas à taper tes amis pour échanger ta bouteille si l'alcool ne te plait pas !\n- Le premier à "+ChatColor.DARK_AQUA+"15 points"+ChatColor.BLACK+" gagne.");
 	    bm.setPages(pages);
 	    // Lets fix the typo
 	    book.setItemMeta(bm);
@@ -281,6 +274,8 @@ public class Arena {
 			p.sendMessage(Messages.DEBUT_PARTIE);
 			p.teleport(this.spawn);
 			p.setScoreboard(scoreboard);
+			
+			StatsApi.increaseStat(p, "trollcade", "hangovergames.played_games", 1);
 		}
 		
 		// Détruit le timer
@@ -382,8 +377,9 @@ public class Arena {
 		// On fera des trucs ici
 		status = Status.Stopping;
 		HangoverGames.instance.network.sendArenasInfos(false);
+		StatsApi.increaseStat(player.getPlayerID(), "trollcade", "hangovergames.wins", 1);
 		
-		TreeMap<Integer, Player> top = new TreeMap(Collections.reverseOrder());
+		TreeMap<Integer, Player> top = new TreeMap<>(Collections.reverseOrder());
 		
 		for (UUID p : scores.keySet()) {
 			top.put(scores.get(p), Bukkit.getPlayer(p));

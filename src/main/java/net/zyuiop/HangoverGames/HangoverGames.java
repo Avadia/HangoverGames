@@ -53,6 +53,8 @@ public class HangoverGames extends JavaPlugin {
 	}
 	
 	public void onDisable() {
+		Bukkit.getLogger().info("Disabling HangoverGames");
+		arenasManager.disable();
 		network.disable();
 	}
 	

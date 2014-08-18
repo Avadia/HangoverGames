@@ -232,6 +232,7 @@ public class PlayerListener implements Listener {
 		ItemStack item = ev.getItem();
 		System.out.println(item.getType().toString());
 		if (item.getType().equals(Material.POTION) || item.getType().equals(Material.GLASS_BOTTLE)) {
+			StatsApi.increaseStat(ev.getPlayer(), "trollcade", "hangovergames.drinks", 1);
 			Alcool alc = AlcoolRandom.getByItemName(item.getItemMeta().getDisplayName());
 			if (alc == null) {
 				System.out.println("Alcool not found : "+item.getItemMeta().getDisplayName());
