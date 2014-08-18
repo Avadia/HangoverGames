@@ -1,0 +1,79 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>net.zyuiop</groupId>
+  <artifactId>HangoverGames</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+
+  <name>HangoverGames</name>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+<repositories>
+		<repository>
+			<id>bukkit-repo</id>
+			<url>http://repo.bukkit.org/content/groups/public/</url>
+		</repository>
+		<repository>
+			<id>pex-repo</id>
+			<url>http://pex-repo.zachsthings.com</url>
+		</repository>
+		<repository>
+			<id>sk89q-repo</id>
+			<url>http://maven.sk89q.com/repo/</url>
+		</repository>
+		<repository>
+			<id>geekpower14-repo</id>
+			<url>http://geekpower14.com/repo/maven</url>
+		</repository>
+		<repository>
+			<id>zyuiop-repo</id>
+			<url>http://repo.zyuiop.net/</url>
+		</repository>
+	</repositories>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+			<groupId>org.bukkit</groupId>
+			<artifactId>craftbukkit</artifactId>
+			<!-- Bukkit API Version, change if out dated -->
+			<version>1.7.9-R0.3-SNAPSHOT</version>
+			<type>jar</type>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>ru.tehkode</groupId>
+			<artifactId>PermissionsEx</artifactId>
+			<version>1.22</version>
+            <scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>redis.clients</groupId>
+			<artifactId>jedis</artifactId>
+			<version>2.4.2</version>
+			<type>jar</type>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.sk89q</groupId>
+			<artifactId>worldedit</artifactId>
+			<version>5.5.8</version>
+            <scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>net.zyuiop</groupId>
+			<artifactId>MasterBundle</artifactId>
+			<version>1.0.0</version>
+            <scope>provided</scope>
+		</dependency>
+  </dependencies>
+</project>

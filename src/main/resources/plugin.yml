@@ -1,0 +1,14 @@
+name: HangoverGames
+main: net.zyuiop.HangoverGames.HangoverGames
+version: 0.1
+softdepends: [MasterBundle]
+commands:
+   start:
+      description: Commandes HangoverGames
+      usage: /<command> <add|remove|list|edit|info>
+      permission: HangoverGames.op
+      permission-message: Permission non accordée
+permissions:
+   HangoverGames.op:
+      description: Commandes OP HG
+      default: op
