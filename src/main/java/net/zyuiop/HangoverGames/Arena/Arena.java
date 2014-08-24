@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.TreeMap;
@@ -16,6 +17,7 @@ import net.zyuiop.HangoverGames.HangoverGames;
 import net.zyuiop.HangoverGames.Messages;
 import net.zyuiop.HangoverGames.Network.Status;
 import net.zyuiop.HangoverGames.Tasks.BeginTimer;
+import net.zyuiop.HangoverGames.Tasks.DrinkTimer;
 import net.zyuiop.HangoverGames.Tasks.LolNoise;
 import net.zyuiop.coinsManager.CoinsManager;
 import net.zyuiop.statsapi.StatsApi;
@@ -27,6 +29,7 @@ import org.bukkit.FireworkEffect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.FireworkEffect.Type;
 import org.bukkit.block.Block;
@@ -34,6 +37,7 @@ import org.bukkit.craftbukkit.v1_7_R3.inventory.CraftItemStack;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.FireworkMeta;
@@ -41,6 +45,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.MaterialData;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
@@ -62,7 +68,10 @@ public class Arena {
 	public Status status = Status.Available;
 	public BeginTimer timer =  null;
 	
-	public HashMap<UUID, Date> cooldown = new HashMap<UUID, Date>();
+	public HashMap<UUID, Date> damagedcooldown = new HashMap<UUID, Date>();
+	public HashMap<UUID, Date> antiDouble = new HashMap<UUID, Date>();
+	
+	public HashMap<UUID, BukkitTask> bottleTasks = new HashMap<>();
 	
 	public Integer nocive = 0;
 	public LolNoise noise = null;
@@ -72,6 +81,8 @@ public class Arena {
 	
 	public Scoreboard scoreboard;
 	public Objective objective;
+	
+	private BukkitTask gameTime;
 	/*
 	public void playerEffects(Player player) {
 		Integer score = scores.get(player.getUniqueId());
@@ -201,6 +212,34 @@ public class Arena {
 		return ((status.equals(Status.Available) || status.equals(Status.Starting)) && players.size() < maxPlayers);
 	}
 	
+	public void forceDrink(Player p) {
+		if (!this.isGameStarted())
+			return;
+		
+		ItemStack bot = null;
+		for (ItemStack b : p.getInventory().getContents()) {
+			if (b.getType().equals(Material.GLASS_BOTTLE)) return;
+			if (b.getType().equals(Material.POTION)) { bot = b;
+				break;
+			}
+		}
+		broadcastMessage(Messages.RETIENT.replace("{PSEUDO}", p.getName()));
+		Bukkit.getServer().getPluginManager().callEvent(new PlayerItemConsumeEvent(p, bot));
+	}
+	
+	public void noMoreBottle(Player p) {
+		BukkitTask task = bottleTasks.get(p.getUniqueId());
+		if (task != null)
+			task.cancel();
+		bottleTasks.remove(p.getUniqueId());
+		p.setLevel(0);
+	}
+	
+	public void newBottle(Player p) {
+		noMoreBottle(p);
+		bottleTasks.put(p.getUniqueId(), new DrinkTimer(this, p).runTaskTimer(HangoverGames.instance, 0L, 20L));
+	}
+	
 	public boolean isGameStarted() {
 		return (status == Status.InGame);
 	}
@@ -258,8 +297,9 @@ public class Arena {
 		
 		scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
 		objective = scoreboard.registerNewObjective("points", "dummy");
-		objective.setDisplayName(ChatColor.DARK_RED+"Taux d'alcool (g/L)");
+		objective.setDisplayName(ChatColor.GREEN+""+ChatColor.BOLD+"HangoverGames"+ChatColor.WHITE+" | "+ChatColor.AQUA+"00:00");
 		objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+		objective.getScore(ChatColor.GREEN+"> Objectif : ").setScore(15);
 		
 		for (VirtualPlayer pl : players) {
 			Player p = pl.getPlayer();
@@ -278,6 +318,27 @@ public class Arena {
 			StatsApi.increaseStat(p, "trollcade", "hangovergames.played_games", 1);
 		}
 		
+	
+        gameTime = Bukkit.getScheduler().runTaskTimer(HangoverGames.instance, new Runnable() {
+			private int time = 0;
+        	@Override
+        	public void run() {
+        		time++;
+				objective = scoreboard.getObjective("points");
+				objective.setDisplayName(ChatColor.GREEN+""+ChatColor.BOLD+"HangoverGames"+ChatColor.WHITE+" | "+ChatColor.AQUA+formatTime(time));
+			}
+        	
+        	public String formatTime(int time) {
+        		int mins = (int) time / 60;
+        		int remainder = time - mins * 60;
+        		int secs = remainder;
+        		String secsSTR = (secs < 10) ? "0"+secs : secs+"";
+        		return mins+":"+secsSTR;
+        	}
+ 		}, 0L, 20L);
+		
+		
+		
 		// Détruit le timer
 		if (timer != null) timer.end();
 		timer = null;
@@ -295,6 +356,7 @@ public class Arena {
 	
 	public void endGame() {
 		status = Status.Stopping;
+		gameTime.cancel();
 		HangoverGames.instance.network.sendArenasInfos(false);
 		for (VirtualPlayer pl : this.players) {
 			HangoverGames.instance.kickPlayer(pl.getPlayer());
@@ -308,6 +370,15 @@ public class Arena {
 		status = Status.Stopping;
 		this.players.clear();
 		this.scores.clear();
+		try {
+			for (BukkitTask t : bottleTasks.values()) 
+				t.cancel();
+		} catch (Exception e) {
+			// on s'en bat lec'
+		}
+			
+		this.antiDouble.clear();
+		this.bottleTasks.clear();
 		this.effectLevel.clear();
 		this.nocive = 0;
 		this.scoreboard = null;
@@ -375,14 +446,13 @@ public class Arena {
 	
 	public void win(final VirtualPlayer player) {
 		// On fera des trucs ici
+		gameTime.cancel();
 		status = Status.Stopping;
 		HangoverGames.instance.network.sendArenasInfos(false);
 		StatsApi.increaseStat(player.getPlayerID(), "trollcade", "hangovergames.wins", 1);
 		
-		TreeMap<Integer, Player> top = new TreeMap<>(Collections.reverseOrder());
-		
-		for (UUID p : scores.keySet()) {
-			top.put(scores.get(p), Bukkit.getPlayer(p));
+		for (BukkitTask t : this.bottleTasks.values()) {
+			t.cancel();
 		}
 		
 		int i = 0;
@@ -396,25 +466,39 @@ public class Arena {
 		broadcastMessage(ChatColor.GOLD+"===========================================");
 		
 		broadcastMessage(" ");
-		broadcastMessage(ChatColor.GOLD+">> Classement des joueurs :");
-		for (Integer score : top.keySet()) {
+		broadcastMessage(ChatColor.GOLD+">> Top 3 des alcooliques : <<");
+		
+		LinkedHashMap<UUID, Integer> top = HangoverGames.sortHashMapByValuesD(scores);
+		
+		Player last = null;
+		for (UUID pl : top.keySet()) {
+			Player p = Bukkit.getPlayer(pl);
+			int score = top.get(pl);
+			if (p == null) continue;
 			i++;
-			if (i > 3) break;
-			broadcastMessage(i+" : "+ChatColor.AQUA+top.get(score).getName()+ChatColor.GOLD+" avec "+score+" g/L de sang");
+			
+			if (i <= 3)
+				broadcastMessage(i+" : "+ChatColor.AQUA+p.getName()+ChatColor.GOLD+" avec "+score+" g/L de sang");
 			if (i == 1)
-				CoinsManager.creditJoueur(top.get(score), 50, true);
+				CoinsManager.creditJoueur(pl, 50, true);
 			else if (i == 2)
-				CoinsManager.creditJoueur(top.get(score), 30, true);
+				CoinsManager.creditJoueur(pl, 30, true);
 			else if (i == 3)
-				CoinsManager.creditJoueur(top.get(score), 10, true);
+				CoinsManager.creditJoueur(pl, 10, true);
+			else
+				last = p;
 		}
+		
+		if (last != null)
+			broadcastMessage(ChatColor.GOLD+"Heureusement que "+ChatColor.AQUA+last.getName()+ChatColor.GOLD+" n'a pas trop bû et les ramènera en voiture !");
+		
 		final int nb = (int) (10 * 1.5);
 		Bukkit.getScheduler().scheduleSyncRepeatingTask(HangoverGames.instance, new Runnable() {
             int compteur = 0;
 
             public void run() {
 
-                if (compteur >= nb) {
+                if (compteur >= nb || player.getPlayer() == null) {
                     return;
                 }
 
@@ -479,6 +563,10 @@ public class Arena {
 			this.refreshPlayers(false);
 			return;
 		}
+		
+		this.broadcastMessage(ChatColor.AQUA+player.getPlayer().getName()+ChatColor.GOLD+" est parti(e) :'(");
+		scoreboard.resetScores(player.getPlayer().getName());
+		
 		if (players.size() == 1)
 			win(players.get(0));
 		else if (players.size() < 1) {

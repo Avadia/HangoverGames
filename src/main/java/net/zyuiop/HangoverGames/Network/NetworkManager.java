@@ -105,12 +105,16 @@ public class NetworkManager {
 	   listener.stop();
 	}
 
-	public void sendArenasInfos(boolean first) {
+	public void sendArenasInfos(final boolean first) {
 	    List<String> serversLobby = plugin.getConfig().getStringList("Lobbys");
 
 	    for (String serv : serversLobby) {
-	        String[] s = serv.split(":");
-	        sendArenasInfosToServ(s[0], Integer.valueOf(s[1]), first);
+	        final String[] s = serv.split(":");
+	        Bukkit.getScheduler().runTaskAsynchronously(HangoverGames.instance, new Runnable() {
+	        	public void run() {
+	        		sendArenasInfosToServ(s[0], Integer.valueOf(s[1]), first);
+	        	}
+	        });
 	    }
 	}
 

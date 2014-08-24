@@ -4,7 +4,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.UUID;
 
 import net.minecraft.server.v1_7_R3.EntityPlayer;
 import net.zyuiop.HangoverGames.Arena.Alcool;
@@ -117,4 +122,35 @@ public class HangoverGames extends JavaPlugin {
 		bouteille.setItemMeta(data);
 		return bouteille;
 	}
+	
+	public static LinkedHashMap<UUID, Integer> sortHashMapByValuesD(HashMap<UUID, Integer> scores) {
+		   List<UUID> mapKeys = new ArrayList<>(scores.keySet());
+		   List<Integer> mapValues = new ArrayList<>(scores.values());
+		   Collections.sort(mapValues, Collections.reverseOrder());
+		   Collections.sort(mapKeys, Collections.reverseOrder());
+
+		   LinkedHashMap<UUID, Integer> sortedMap = new LinkedHashMap<UUID, Integer>();
+
+		   Iterator valueIt = mapValues.iterator();
+		   while (valueIt.hasNext()) {
+		       Object val = valueIt.next();
+		       Iterator keyIt = mapKeys.iterator();
+
+		       while (keyIt.hasNext()) {
+		           Object key = keyIt.next();
+		           String comp1 = scores.get(key).toString();
+		           String comp2 = val.toString();
+
+		           if (comp1.equals(comp2)){
+		               scores.remove(key);
+		               mapKeys.remove(key);
+		               sortedMap.put((UUID)key, (Integer)val);
+		               break;
+		           }
+
+		       }
+
+		   }
+		   return sortedMap;
+		}
 }

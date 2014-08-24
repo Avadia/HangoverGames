@@ -25,6 +25,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.EntityEffect;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_7_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
@@ -41,8 +42,12 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.hanging.HangingBreakByEntityEvent;
+import org.bukkit.event.hanging.HangingBreakEvent;
+import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.painting.PaintingEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -88,7 +93,7 @@ public class PlayerListener implements Listener {
 				
 					
 					Alcool got = null;
-					int maxNocive = (int) Math.floor(ar.minPlayers*0.5);
+					int maxNocive = (int) Math.floor(ar.players.size()*0.5);
 					while (true) {
 						got = AlcoolRandom.getRandom();
 						if (got.getValue() < 0) {
@@ -119,6 +124,14 @@ public class PlayerListener implements Listener {
 						event.getPlayer().getInventory().addItem(add);
 					}
 					
+					Date cooldown = new Date();
+					cooldown.setTime(cooldown.getTime() + 1000);
+					ar.damagedcooldown.put(event.getPlayer().getUniqueId(), cooldown);
+					
+					
+					ar.newBottle(event.getPlayer());
+					
+					
 					event.setCancelled(true);
 					
 					if (got.equals(Alcool.Whisky)) {
@@ -126,6 +139,8 @@ public class PlayerListener implements Listener {
 						event.getPlayer().getWorld().strikeLightningEffect(event.getPlayer().getLocation());
 					}
 				}
+			} else if (event.getPlayer().getItemInHand().getType() == Material.GLASS_BOTTLE) {
+				event.setCancelled(true);
 			}
 		}
 		ItemStack i = event.getItem();
@@ -166,11 +181,13 @@ public class PlayerListener implements Listener {
 	
 	@EventHandler
 	public void onPlayerMove(PlayerMoveEvent event) {
-		if (event.getTo().getBlockY() < 0) {
+		Block b = event.getTo().getBlock();
+		if (event.getTo().getBlockY() < 0 || (b.isLiquid() && b.getData() < ((byte)4))) {
 			Arena ar = HangoverGames.instance.arenasManager.getPlayerArena(event.getPlayer().getUniqueId());
-			if (ar == null || !ar.isGameStarted()) return;
+			if (ar == null) return;
 			event.getPlayer().teleport(ar.spawn);
-		}
+			event.getPlayer().sendMessage(Messages.MAP_END);
+		} 
 	}
 	
 	@EventHandler
@@ -276,6 +293,13 @@ public class PlayerListener implements Listener {
 				ar.broadcastSound(Sound.BURP, ev.getPlayer().getLocation());
 			}
 			
+			if (alc.equals(Alcool.Whisky)) {
+				ar.broadcastSound(Sound.WITHER_DEATH, ev.getPlayer().getLocation());
+			}
+			
+			ar.noMoreBottle(ev.getPlayer());
+			
+			
 			if (score >= 15) {
 				ar.win(new VirtualPlayer(ev.getPlayer()));
 			}
@@ -296,14 +320,29 @@ public class PlayerListener implements Listener {
 	}
 	
 	@EventHandler
+	public void onPaint(HangingBreakEvent e) {
+		e.setCancelled(true);
+	}
+	
+	@EventHandler
+	public void onPaint(HangingPlaceEvent e) {
+		e.setCancelled(true);
+	}
+	
+	@EventHandler
+	public void onPaint(HangingBreakByEntityEvent e) {
+		e.setCancelled(true);
+	}
+	
+	@EventHandler
 	public void onPlayerFight(EntityDamageEvent e) {
 		if (e.getEntityType() != EntityType.PLAYER) {
 			if (e.getEntityType() == EntityType.ITEM_FRAME || e.getEntityType() == EntityType.PAINTING)
 				e.setCancelled(true);
 			return;
 		}
-		final Player p = (Player) e.getEntity();
-		final Arena ar = HangoverGames.instance.arenasManager.getPlayerArena(p.getUniqueId());
+		final Player damaged = (Player) e.getEntity();
+		final Arena ar = HangoverGames.instance.arenasManager.getPlayerArena(damaged.getUniqueId());
 		if (ar == null || !ar.isGameStarted()) {
 			e.setCancelled(true);
 			return;
@@ -313,76 +352,100 @@ public class PlayerListener implements Listener {
 		if (e instanceof EntityDamageByEntityEvent) {
 			final EntityDamageByEntityEvent ev = (EntityDamageByEntityEvent) e;
 			if (ev.getDamager() != null) {
-				Entity damager = ev.getDamager();
-				if (damager instanceof Player) {
-					final Player t = (Player) damager;
+				Entity damagerE = ev.getDamager();
+				if (damagerE instanceof Player) {
+					final Player damager = (Player) damagerE;
 					Date now = new Date();
 					
-					Date t_cool = ar.cooldown.get(t.getUniqueId());
-					Date p_cool = ar.cooldown.get(p.getUniqueId());
+					Date damaged_cool = ar.damagedcooldown.get(damaged.getUniqueId());
+					Date antiDouble = ar.antiDouble.get(damaged.getUniqueId());
+					Date antiDoubleDamager = ar.antiDouble.get(damager.getUniqueId());
 					
-					if (t_cool != null && t_cool.after(now)) {
-						t.sendMessage(ChatColor.RED+"He, ho, attends un peu, tu vas finir par te blesser !");
-						return;
-					} else if (p_cool != null && p_cool.after(now)) {
-						t.sendMessage(ChatColor.RED+"He, ho, attends un peu, "+p.getName()+" se fait tabasser !");
+					if (damaged_cool != null && damaged_cool.after(now)) {
+						damager.sendMessage(ChatColor.GOLD+""+ChatColor.ITALIC+"Attends un peu, "+damaged.getName()+" se fait tabasser !");
 						return;
 					}
 					
-					ItemStack tbot = null;
-					ItemStack pbot = null;
-					for (ItemStack i : t.getInventory().getContents()) {
+					if (antiDouble != null && antiDouble.after(now) || antiDoubleDamager != null && antiDoubleDamager.after(now)) {
+						damager.sendMessage(ChatColor.GOLD+""+ChatColor.ITALIC+"Attends un peu quand même !");
+						return;
+					}
+					
+					ItemStack damagerbot = null;
+					ItemStack damagedbot = null;
+					for (ItemStack i : damager.getInventory().getContents()) {
 						if (i == null) continue;
 						if (i.getType().equals(Material.POTION) || i.getType().equals(Material.GLASS_BOTTLE)) {
-							tbot = i.clone();
+							damagerbot = i.clone();
 							break;
 						}
 					}
 					
-					for (ItemStack i : p.getInventory().getContents()) {
+					for (ItemStack i : damaged.getInventory().getContents()) {
 						if (i == null) continue;
 						if (i.getType().equals(Material.POTION) || i.getType().equals(Material.GLASS_BOTTLE)) {
-							pbot = i.clone();
+							damagedbot = i.clone();
 							break;
 						}
 					}
 					
-					t.getInventory().clear();
-					p.getInventory().clear();
+					if (damagerbot == null) {
+						damagerbot = HangoverGames.instance.emptyBottle();
+					} else if (damagedbot == null) {
+						damagedbot = HangoverGames.instance.emptyBottle();
+					}
 					
-					t.sendMessage(ChatColor.GREEN+"Vous avez échangé de bouteille avec "+ChatColor.RED+p.getName());
-					p.sendMessage(ChatColor.RED+"Vous avez échangé de bouteille avec "+ChatColor.GREEN+t.getName());
+					damager.getInventory().clear();
+					damaged.getInventory().clear();
+					
+					damager.sendMessage(ChatColor.GREEN+"Vous avez échangé de bouteille avec "+ChatColor.RED+damaged.getName());
+					damaged.sendMessage(ChatColor.RED+"Vous avez échangé de bouteille avec "+ChatColor.GREEN+damager.getName());
 							
-					final ItemStack BottleT = tbot;
-					final ItemStack BottleP = pbot;
+					final ItemStack BottleDamager = damagerbot;
+					final ItemStack BottleDamaged = damagedbot;
 					
 					Bukkit.getScheduler().runTaskLater(HangoverGames.instance, new Runnable() {
 						public void run() {
-							t.getInventory().addItem(BottleP);
-							p.getInventory().addItem(BottleT);
+							damager.getInventory().addItem(BottleDamaged);
+							damaged.getInventory().addItem(BottleDamager);
 							
-							if (AlcoolRandom.getByItemName(BottleP.getItemMeta().getDisplayName()).equals(Alcool.Whisky)) {
-								ar.broadcastMessage(ChatColor.AQUA+t.getName()+ChatColor.GOLD+" a volé la bouteille de "+ChatColor.GREEN+"Whisky"+ChatColor.GOLD+" à "+ChatColor.RED+p.getName()+" !");
-								t.getWorld().strikeLightningEffect(t.getLocation());
+							if (BottleDamager.getType().equals(Material.POTION) && AlcoolRandom.getByItemName(BottleDamager.getItemMeta().getDisplayName()).equals(Alcool.Whisky)) {
+								ar.broadcastMessage(ChatColor.AQUA+damaged.getName()+ChatColor.GOLD+" a volé la bouteille de "+ChatColor.GREEN+"Whisky"+ChatColor.GOLD+" à "+ChatColor.RED+damager.getName()+" !");
+								damaged.getWorld().strikeLightningEffect(damaged.getLocation());
 							}
 							
-							if (AlcoolRandom.getByItemName(BottleT.getItemMeta().getDisplayName()).equals(Alcool.Whisky)) {
-								ar.broadcastMessage(ChatColor.AQUA+p.getName()+ChatColor.GOLD+" a volé la bouteille de "+ChatColor.GREEN+"Whisky"+ChatColor.GOLD+" à "+ChatColor.RED+t.getName()+" !");
-								p.getWorld().strikeLightningEffect(p.getLocation());
+							if (BottleDamaged.getType().equals(Material.POTION) && AlcoolRandom.getByItemName(BottleDamaged.getItemMeta().getDisplayName()).equals(Alcool.Whisky)) {
+								ar.broadcastMessage(ChatColor.AQUA+damager.getName()+ChatColor.GOLD+" a volé la bouteille de "+ChatColor.GREEN+"Whisky"+ChatColor.GOLD+" à "+ChatColor.RED+damaged.getName()+" !");
+								damager.getWorld().strikeLightningEffect(damager.getLocation());
 							}
 						}
-					}, 5L);
+					}, 3L);
+					
+					if (damagerbot.equals(HangoverGames.instance.emptyBottle())) {
+						ar.noMoreBottle(damaged);
+					} else {
+						ar.newBottle(damaged);
+					}
+					
+					if (damagedbot.equals(HangoverGames.instance.emptyBottle())) {
+						ar.noMoreBottle(damager);
+					} else {
+						ar.newBottle(damager);
+					}
 					
 					
-					
+					Date antidouble = new Date();
+					antidouble.setTime(antidouble.getTime() + 350);
+					ar.antiDouble.put(damager.getUniqueId(), antidouble);
+					ar.antiDouble.put(damaged.getUniqueId(), antidouble);
 					
 					Date cooldown = new Date();
-					cooldown.setTime(cooldown.getTime() + 2300);
-					ar.cooldown.put(t.getUniqueId(), cooldown);
-					ar.cooldown.put(p.getUniqueId(), cooldown);
+					cooldown.setTime(cooldown.getTime() + 2200);
+					ar.damagedcooldown.put(damager.getUniqueId(), cooldown);
+					ar.damagedcooldown.put(damaged.getUniqueId(), cooldown);
 					
-					t.playEffect(EntityEffect.HURT);
-					p.playEffect(EntityEffect.HURT);
+					damaged.playEffect(EntityEffect.HURT);
+					damager.playEffect(EntityEffect.HURT);
 				}
 			}
 		}
