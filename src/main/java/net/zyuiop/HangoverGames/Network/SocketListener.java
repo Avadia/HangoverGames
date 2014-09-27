@@ -1,13 +1,14 @@
 package net.zyuiop.HangoverGames.Network;
 
+import net.zyuiop.HangoverGames.HangoverGames;
+import org.bukkit.craftbukkit.libs.com.google.gson.Gson;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-
-import net.zyuiop.HangoverGames.HangoverGames;
 
 public class SocketListener implements Runnable {
     private HangoverGames plugin;
@@ -20,11 +21,14 @@ public class SocketListener implements Runnable {
     private String Auth;
     private String buff;
 
+    private NetworkManager networkManager;
+
     private boolean run = true;
 
-    public SocketListener(HangoverGames plugin, ServerSocket sock) {
+    public SocketListener(HangoverGames plugin, ServerSocket sock, NetworkManager networkManager) {
         this.plugin = plugin;
         socketserver = sock;
+        this.networkManager = networkManager;
     }
 
     public void run() {
@@ -43,7 +47,7 @@ public class SocketListener implements Runnable {
 
                 buff = in.readLine();
 
-                out.println(plugin.network.InputMessage(buff));
+                out.println(new Gson().toJson(networkManager.InputMessage(buff)));
                 out.flush();
 
 

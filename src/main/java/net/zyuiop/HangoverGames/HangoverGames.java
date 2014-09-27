@@ -11,7 +11,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
 
-import net.minecraft.server.v1_7_R3.EntityPlayer;
+import net.samagames.permissionsapi.PermissionsAPI;
+import net.samagames.permissionsbukkit.PermissionsBukkit;
 import net.zyuiop.HangoverGames.Arena.Alcool;
 import net.zyuiop.HangoverGames.Arena.ArenasManager;
 import net.zyuiop.HangoverGames.Commands.CommandStart;
@@ -20,10 +21,7 @@ import net.zyuiop.HangoverGames.Network.NetworkManager;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_7_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -34,20 +32,20 @@ public class HangoverGames extends JavaPlugin {
 	public ArenasManager arenasManager;
 	public NetworkManager network;
 	public static HangoverGames instance;
-	
-	/* Comunication settings */
-	public Integer comPort;
-	public String BungeeName;
+    public PermissionsAPI api;
 	
 	public void onEnable() {		
 		HangoverGames.instance = this;
 		
 		this.saveDefaultConfig();
-		comPort = getConfig().getInt("com-port");
-		BungeeName = getConfig().getString("BungeeName");
+		int comPort = getConfig().getInt("com-port");
+		String BungeeName = getConfig().getString("BungeeName");
+
+        PermissionsBukkit plugin = (PermissionsBukkit) this.getServer().getPluginManager().getPlugin("SamaPermissionsBukkit");
+        api = plugin.getApi();
 		
 		arenasManager = new ArenasManager(this);
-		network = new NetworkManager(this);
+		network = new NetworkManager(this, comPort, BungeeName);
 		arenasManager.loadArenas();
 		network.initListener();
 		network.initInfosSender();
@@ -124,8 +122,8 @@ public class HangoverGames extends JavaPlugin {
 	}
 	
 	public static LinkedHashMap<UUID, Integer> sortHashMapByValuesD(HashMap<UUID, Integer> scores) {
-		   List<UUID> mapKeys = new ArrayList<>(scores.keySet());
-		   List<Integer> mapValues = new ArrayList<>(scores.values());
+		   List<UUID> mapKeys = new ArrayList<UUID>(scores.keySet());
+		   List<Integer> mapValues = new ArrayList<Integer>(scores.values());
 		   Collections.sort(mapValues, Collections.reverseOrder());
 		   Collections.sort(mapKeys, Collections.reverseOrder());
 

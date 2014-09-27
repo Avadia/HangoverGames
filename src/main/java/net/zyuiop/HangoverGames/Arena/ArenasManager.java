@@ -1,37 +1,37 @@
 package net.zyuiop.HangoverGames.Arena;
 
+import net.zyuiop.HangoverGames.HangoverGames;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import ru.tehkode.permissions.PermissionUser;
+import ru.tehkode.permissions.bukkit.PermissionsEx;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.configuration.Configuration;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
-
-import net.zyuiop.HangoverGames.HangoverGames;
-
 public class ArenasManager {
 	
 	private HangoverGames plugin;
-	private HashMap<String, Arena> arenas = new HashMap<String, Arena>();
+	private HashMap<UUID, Arena> arenas = new HashMap<UUID, Arena>();
 	
-	private HashMap<UUID, String> joinWait = new HashMap<UUID, String>();
+	private HashMap<UUID, UUID> joinWait = new HashMap<UUID, UUID>();
 	
 	public ArenasManager(HangoverGames plugin) {
 		this.plugin = plugin;
 	}
 	
-	public HashMap<String, Arena> getArenas() {
+	public HashMap<UUID, Arena> getArenas() {
 		return arenas;
 	}
 	
-	public HashMap<UUID, String> attempts() {
+	public HashMap<UUID, UUID> attempts() {
 		return joinWait;
 	}
 	
@@ -39,7 +39,7 @@ public class ArenasManager {
 		return joinWait.containsKey(player.getPlayerID());
 	}
 	
-	public String prepareJoin(UUID plid, String arena) {
+	public String prepareJoin(UUID plid, UUID arena) {
 		final VirtualPlayer player = new VirtualPlayer(plid);
 		System.out.println("Trying to add player "+plid+" in arena "+arena);
 		if (getPlayerArena(player) != null) {
@@ -49,22 +49,33 @@ public class ArenasManager {
 			System.out.println("Returned good : player already in list.");
 			return "good";
 		}
+		PermissionUser p = PermissionsEx.getPermissionManager().getUser(plid);
 		Arena ar = arenas.get(arena);
 		if (ar == null) {
 			return ChatColor.RED+"Une erreur s'est produite : l'arène demandée n'existe pas";
 		}
-		if (!ar.canJoin()) {
-			return ChatColor.RED+"Il est impossible de rejoindre l'arène pour le moment.";
+		if (p.has("hangover.joinstaff")) {
+			if (!ar.canJoinStaff()) {
+				return ChatColor.RED+"Il est impossible de rejoindre l'arène pour le moment.";
+			}
+		} else if (p.has("hangover.joinvip")) {
+			if (!ar.canJoinVIP()) {
+				return ChatColor.RED+"Il est impossible de rejoindre l'arène pour le moment.";
+			}
+		} else {
+			if (!ar.canJoin()) {
+				return ChatColor.RED+"Il est impossible de rejoindre l'arène pour le moment.";
+			}
 		}
 		System.out.println("Added player !");
 		joinWait.put(player.getPlayerID(), arena);
 		Bukkit.getScheduler().runTaskLaterAsynchronously(HangoverGames.instance,
-				new Runnable() { public void run() { String val = joinWait.remove(player.getPlayerID()); System.out.println("Removed "+val); } }, 5*20L);
-		return "good";
+				new Runnable() { public void run() { UUID val = joinWait.remove(player.getPlayerID()); System.out.println("Removed "+val); } }, 5*20L);
+		return "OK";
 	}
 	
-	public Arena getArena(String name) {
-		return arenas.get(name);
+	public Arena getArena(UUID id) {
+		return arenas.get(id);
 	}
 	
 	public Arena getPlayerArena(VirtualPlayer player) {
@@ -96,15 +107,15 @@ public class ArenasManager {
 				
 				Arena nw = new Arena();
 				nw.dataSource = arena;
-				nw.arenaId = UUID.fromString(arenaData.getString("uuid", UUID.randomUUID().toString()));
-				// Sécurité : 
-				arenaData.set("uuid", nw.arenaId.toString());
-				try {
-					arenaData.save(arena);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				
+
+                nw.arenaId = UUID.fromString(arenaData.getString("uuid", UUID.randomUUID().toString()));
+                // Sécurité :
+                arenaData.set("uuid", nw.arenaId.toString());
+                try {
+                    arenaData.save(arena);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 				nw.arenaName = arenaData.getString("name");
 				nw.mapName = arenaData.getString("mapname");
 				nw.maxPlayers = arenaData.getInt("max-players");
@@ -136,7 +147,7 @@ public class ArenasManager {
 					nw.cauldrons.add(cauld);
 				}
 				
-				arenas.put(nw.arenaName, nw);
+				arenas.put(nw.arenaId, nw);
 				Bukkit.getLogger().info("[ArenaLoad]["+w.getName()+"] Successfully loaded arena "+arena.getName()+" !");
 			}
 			Bukkit.getLogger().info("[ArenaLoad] Loaded world "+w.getName());
@@ -156,13 +167,23 @@ public class ArenasManager {
 		if (!isAttempted(player)) {
 			return "Vous n'êtes pas en attente.";
 		} 
-		Arena ar = getArena(joinWait.get(player.getPlayerID()));
+		Arena ar = arenas.get(joinWait.get(player.getPlayerID()));
 		joinWait.remove(player.getPlayerID());
 		if (ar == null) {
-			return "L'arène est introuvable";
+			return ChatColor.RED+"Une erreur s'est produite : l'arène demandée n'existe pas";
 		}
-		if (!ar.canJoin()) {
-			return "Arène non joignable.";
+		if (p.hasPermission("hangover.joinstaff")) {
+			if (!ar.canJoinStaff()) {
+				return ChatColor.RED+"Il est impossible de rejoindre l'arène pour le moment.";
+			}
+		} else if (p.hasPermission("hangover.joinvip")) {
+			if (!ar.canJoinVIP()) {
+				return ChatColor.RED+"Il est impossible de rejoindre l'arène pour le moment.";
+			}
+		} else {
+			if (!ar.canJoin()) {
+				return ChatColor.RED+"Il est impossible de rejoindre l'arène pour le moment.";
+			}
 		}
 		
 		// Tentative d'ajout //

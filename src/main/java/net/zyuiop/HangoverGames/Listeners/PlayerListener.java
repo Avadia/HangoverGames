@@ -1,39 +1,15 @@
 package net.zyuiop.HangoverGames.Listeners;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import net.minecraft.server.v1_7_R3.NBTTagCompound;
-import net.minecraft.server.v1_7_R3.NBTTagList;
+import net.zyuiop.HangoverGames.Arena.*;
 import net.zyuiop.HangoverGames.HangoverGames;
 import net.zyuiop.HangoverGames.Messages;
-import net.zyuiop.HangoverGames.Arena.Alcool;
-import net.zyuiop.HangoverGames.Arena.AlcoolRandom;
-import net.zyuiop.HangoverGames.Arena.Arena;
-import net.zyuiop.HangoverGames.Arena.ArenasManager;
-import net.zyuiop.HangoverGames.Arena.VirtualPlayer;
-import net.zyuiop.HangoverGames.Utils.ParticleLibrary;
-import net.zyuiop.HangoverGames.Utils.ParticleLibrary.ParticleType;
-import net.zyuiop.coinsManager.CoinsManager;
 import net.zyuiop.statsapi.StatsApi;
-
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.EntityEffect;
-import org.bukkit.Material;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_7_R3.inventory.CraftItemStack;
-import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -41,28 +17,25 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
+import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.event.painting.PaintingEvent;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemConsumeEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.event.player.PlayerLoginEvent.Result;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.material.MaterialData;
+
+import java.util.Arrays;
+import java.util.Date;
 
 public class PlayerListener implements Listener {
+	
+	@EventHandler
+	public void onInventory(InventoryInteractEvent e) {
+		e.setCancelled(true);
+	}
 	
 	@EventHandler
 	public void onPlayerInteract(PlayerInteractEvent event) {
@@ -98,7 +71,7 @@ public class PlayerListener implements Listener {
 						got = AlcoolRandom.getRandom();
 						if (got.getValue() < 0) {
 							Bukkit.getLogger().info("Checking quantity of nocive : "+ar.nocive+" - allowed : "+maxNocive);
-							if (ar.nocive+1 < maxNocive) {
+							if (ar.nocive+1 <= maxNocive) {
 								ar.nocive += 1;
 								Bukkit.getLogger().info("-> Allowed");
 								break;
@@ -287,7 +260,6 @@ public class PlayerListener implements Listener {
 			if (alc.getValue() < 0) {
 				ar.broadcastMessage(Messages.POINTS_LOST.replace("{PSEUDO}", ev.getPlayer().getName()).replace("{NB}", ""+alc.getValue()*-1).replace("{BOISSON}", alc.getNom()));
 				ar.broadcastSound(Sound.HORSE_ZOMBIE_DEATH, ev.getPlayer().getLocation());
-				ParticleLibrary.sendParticleToLocation(ev.getPlayer().getLocation(), ParticleType.DRIP_LAVA, 1, 1, 1, 1, 50);
 			} else {
 				ar.broadcastMessage(Messages.POINTS_GAINED.replace("{PSEUDO}", ev.getPlayer().getName()).replace("{NB}", ""+alc.getValue()).replace("{BOISSON}", alc.getNom()));
 				ar.broadcastSound(Sound.BURP, ev.getPlayer().getLocation());
@@ -316,7 +288,7 @@ public class PlayerListener implements Listener {
 		Arena ar = HangoverGames.instance.arenasManager.getPlayerArena(event.getPlayer().getUniqueId());
 		if (ar == null) return;
 		ar.stumpPlayer(new VirtualPlayer(event.getPlayer()));
-		HangoverGames.instance.network.sendArenasInfos(false);
+		HangoverGames.instance.network.refreshArena(ar);
 	}
 	
 	@EventHandler
@@ -419,7 +391,7 @@ public class PlayerListener implements Listener {
 								damager.getWorld().strikeLightningEffect(damager.getLocation());
 							}
 						}
-					}, 3L);
+					}, 5L);
 					
 					if (damagerbot.equals(HangoverGames.instance.emptyBottle())) {
 						ar.noMoreBottle(damaged);

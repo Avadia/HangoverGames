@@ -1,5 +1,12 @@
 package net.zyuiop.HangoverGames.Network;
 
+import net.zyuiop.HangoverGames.Arena.Arena;
+import net.zyuiop.HangoverGames.HangoverGames;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.craftbukkit.libs.com.google.gson.Gson;
+import org.bukkit.scheduler.BukkitTask;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -8,181 +15,188 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
-import java.util.logging.Level;
-
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.scheduler.BukkitTask;
-
-import net.zyuiop.HangoverGames.HangoverGames;
-import net.zyuiop.HangoverGames.Arena.Arena;
 
 public class NetworkManager {
-	
-	private HangoverGames plugin;
-	private ServerSocket sock;
-	private SocketListener listener;
-	private Thread listenThread;
-	private BukkitTask sendThread;
-	
-	public NetworkManager(HangoverGames plugin) {
-		this.plugin = plugin;
-	}
-	
-	public void initListener() {
-	    try {
-	    	Bukkit.getLogger().info("Started listener.");
-	        sock = new ServerSocket(plugin.comPort);
-	        listener = new SocketListener(plugin, sock);
-	        listenThread = new Thread(listener);
-	        listenThread.start();
-	    } catch (IOException e) {
-	        e.printStackTrace();
-	    }
-	}
 
-	public void initInfosSender() {
-	    sendThread = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, new Runnable() {
-	            public void run() {
-	                sendArenasInfos(true);
-	            }
-	        }, 10L, 120*20L);
-	}
+    private HangoverGames plugin;
+    private ServerSocket sock;
+    private SocketListener listener;
+    private Thread listenThread;
+    private BukkitTask sendThread;
+    private int comport;
+    private String bungeeName;
+    private String server;
 
-	public String InputMessage(String msg) {
-	    String data[] = msg.split(":");
-	    System.out.println(msg);
-	        if (data.length < 1)
-	            return "bad";
-	        try {
-	            if (data[0].equalsIgnoreCase("Join")) {
-	                /*
-					 * 0: Type de packet
-					 * 1: Nom du joueur
-					 * 2: UUID
-					 * 3: Arène
-					 */
-	                if (data.length < 4)
-	                    return "bad";
+    public NetworkManager(HangoverGames plugin, int comPort, String bungeeName) {
+        this.plugin = plugin;
+        this.comport = comPort;
+        this.bungeeName = bungeeName;
+        this.server = new Gson().toJson(new JsonServer(comport, bungeeName, Bukkit.getIp(), "hangovergames"));
+    }
 
-	                String name = data[1];
-	                UUID uuid = UUID.fromString(data[2]);
+    public void initListener() {
+        try {
+            Bukkit.getLogger().info("Starting listener on port 0.0.0.0:" + comport + "...");
+            sock = new ServerSocket(comport);
+            listener = new SocketListener(plugin, sock, this);
+            listenThread = new Thread(listener);
+            listenThread.start();
+            Bukkit.getLogger().info("Listener successfully. Listening on 0.0.0.0:" + comport);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-	                String ar = data[3];
-	                Arena arena = plugin.arenasManager.getArena(ar);
+    public void initInfosSender() {
+        sendThread = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, new Runnable() {
+            public void run() {
+                sendArenas();
+            }
+        }, 10L, 120 * 20L);
+    }
 
-	                if (arena == null)
-	                    return "no arena";
+    public void sendArenas() {
+        sendArenaInfos(plugin.arenasManager.getArenas().values());
+    }
 
-	                return plugin.arenasManager.prepareJoin(uuid, arena.arenaName);
-	            }
+    public JoinResponse InputMessage(String msg) {
+        String data[] = msg.split("::");
+        System.out.println(msg);
 
+        JoinResponse ret = new JoinResponse();
+        ret.errorMessage = null;
 
-	        } catch (ArrayIndexOutOfBoundsException e) {
-	            plugin.getLogger().log(Level.SEVERE, "Data lengh :" + data.length);
-	            plugin.getLogger().log(Level.SEVERE, "msg :" + msg);
-	        }
-	        return "";
-	    }
+        if (data.length < 1) {
+            ret.accepted = false;
+            ret.errorMessage = ChatColor.RED+"Une erreur s'est produite durant la communication avec le serveur de jeu.";
+            return ret;
+        }
 
-	public void disable() {
+        try {
+            if (data[0].equalsIgnoreCase("Join")) {
 
-	   new Thread(new Runnable() {
-	       public void run() {
-	           sendArenasInfos(true);
-	       }
-	   }).run();
+                if (data.length < 2) {
+                    ret.accepted = false;
+                    ret.errorMessage = ChatColor.RED+"Une erreur s'est produite durant la communication avec le serveur de jeu.";
+                    return ret;
+                }
 
-	   sendThread.cancel();
+                JoinMessage message = new Gson().fromJson(data[1], JoinMessage.class);
+                if (message.reason.equals("game")) {
+                    Arena arena = plugin.arenasManager.getArena(message.getTargetArena());
 
-	   try {
-	       sock.close();
-	   } catch (IOException e) {
-	       e.printStackTrace();
-	   }
-	   listener.stop();
-	}
+                    if (arena == null) {
+                        ret.accepted = false;
+                        ret.errorMessage = ChatColor.RED+"Le serveur de jeu n'est pas prêt a accueillir des joueurs.";
+                        return ret;
+                    }
 
-	public void sendArenasInfos(final boolean first) {
-	    List<String> serversLobby = plugin.getConfig().getStringList("Lobbys");
+                    String resp = plugin.arenasManager.prepareJoin(message.getPlayerId(), message.getTargetArena());
+                    if (resp.equals("OK")) {
+                        ret.accepted = true;
+                    } else {
+                        ret.accepted = false;
+                        ret.errorMessage = resp;
+                    }
 
-	    for (String serv : serversLobby) {
-	        final String[] s = serv.split(":");
-	        Bukkit.getScheduler().runTaskAsynchronously(HangoverGames.instance, new Runnable() {
-	        	public void run() {
-	        		sendArenasInfosToServ(s[0], Integer.valueOf(s[1]), first);
-	        	}
-	        });
-	    }
-	}
+                    return ret;
+                } else {
+                    ret.accepted = false;
+                    ret.errorMessage = ChatColor.RED+"Mode de connexion refusé par le serveur {ERR : Mod join not implemented}";
+                    return ret;
+                }
+            }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            e.printStackTrace();
+        }
+        ret.accepted = false;
+        ret.errorMessage = ChatColor.RED+"Une erreur s'est produite durant la communication avec le serveur de jeu.";
+        return ret;
+    }
 
-	public void sendArenasInfosToServ(String ip, int port, boolean first) {
-	    first = true;
-	    try {
-	        InetAddress MainServer = InetAddress.getByName(ip);
-	        Socket sock = new Socket(MainServer, port);
-	        PrintWriter out = new PrintWriter(sock.getOutputStream());
-	        BufferedReader in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+    public void disable() {
+        sendThread.cancel();
+        for (Arena ar : plugin.arenasManager.getArenas().values())
+            ar.status = Status.Stopping;
+        sendArenas();
+        try {
+            sock.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        listener.stop();
+    }
 
-	        out.println("56465894869dsfg"); // Authentification de lol.
-	        out.flush();
+    public void sendArenaInfos(final Collection<Arena> send) {
+        List<String> serversLobby = plugin.getConfig().getStringList("Lobbys");
 
-	        out.println("hangovergames");
-	        out.flush();
+        for (String serv : serversLobby) {
+            final String[] s = serv.split(":");
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, new Runnable() {
+                public void run() {
+                    sendArenasInfosToServ(s[0], Integer.valueOf(s[1]), send);
+                }
+            });
+        }
+    }
 
-	        String b = in.readLine();
+    public void refreshArena(final Arena send) {
+        ArrayList<Arena> snd = new ArrayList<Arena>();
+        snd.add(send);
+        sendArenaInfos(snd);
+    }
 
-	        if (!b.equals("good")) {
-	            sock.close();
-	            return;
-	        }
+    public void sendArenasInfosToServ(String ip, int port, Collection<Arena> sendList) {
+        try {
+            InetAddress MainServer = InetAddress.getByName(ip);
+            Socket sock = new Socket(MainServer, port);
+            PrintWriter out = new PrintWriter(sock.getOutputStream());
+            BufferedReader in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 
-	        if (first) {
-	                out.println("Infos" + ":" + plugin.BungeeName + ":" + Bukkit.getIp() + ":" + plugin.comPort + ":");
-	                out.flush();
-	        }/*else {
-					//0 : Type ID du serv
-					//1 : nom bungee du serveur
-					
-					out.println("ID" + ":" + plugin.BungeeName);
-					out.flush();
-			}*/
+            out.println("56465894869dsfg"); // Authentification de lol.
+            out.flush();
 
-	        for (Arena arena : plugin.arenasManager.getArenas().values()) {
-	                //0 : Type
-	                //1 : Arena name
-	                //2 : Nb players
-	                //3 : Max player
-	                //4 : Map Name
-	                //5 : ETAT
-	                //6 : CountDown Time
+            out.println("hangovergames"); // C'est le chanel
+            out.flush();
 
-	                out.println("Arena"
-	                        + ":" + arena.arenaId.toString()
-	                        + ":" + arena.arenaName
-	                        + ":" + arena.players.size()
-	                        + ":" + arena.maxPlayers 
-	                        + ":" + arena.mapName
-	                        + ":" + arena.status.getString()
-	                        + ":" + arena.getCount()
-	                        + ":");
-	                out.flush();
-	            }
+            String b = in.readLine();
 
-	            out.println("-thisisthend-");
-	            out.flush();
+            if (!b.equals("good")) {
+                sock.close();
+                return;
+            }
 
-	            sock.close();
-	            
-	            //Bukkit.getLogger().log(Level.INFO, "Socket : sent data to " + ip + ":" + port); -- S'affiche correctement
+            out.println("Infos" + "::" + server);
+            out.flush();
 
-	        } catch (UnknownHostException e) {
-	            e.printStackTrace();
-	        } catch (IOException e) {
-	            System.out.print("Erreur envoi au serveur: " + ip + ":" + port);
-	            //e.printStackTrace();
-	        }
-	    }
+            for (Arena send : sendList) {
+                Gson gson = new Gson();
+                JsonArena arena = new JsonArena(
+                        send.arenaId,
+                        send.mapName,
+                        send.maxPlayers,
+                        2,
+                        send.status.getString(),
+                        send.players.size(),
+                        false
+                );
+
+                out.println("Arena" + "::" + gson.toJson(arena));
+                out.flush();
+            }
+
+            out.println("EndOfLine");
+
+            sock.close();
+        } catch (UnknownHostException e) {
+            Bukkit.getLogger().severe("UnknownHostException fired...");
+            e.printStackTrace();
+        } catch (IOException e) {
+            Bukkit.getLogger().severe("IOException fired...");
+            e.printStackTrace();
+        }
+    }
 }

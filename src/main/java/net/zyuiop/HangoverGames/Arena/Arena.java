@@ -1,18 +1,5 @@
 package net.zyuiop.HangoverGames.Arena;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Random;
-import java.util.TreeMap;
-import java.util.UUID;
-
-import net.minecraft.server.v1_7_R3.NBTTagCompound;
-import net.minecraft.server.v1_7_R3.NBTTagList;
 import net.zyuiop.HangoverGames.HangoverGames;
 import net.zyuiop.HangoverGames.Messages;
 import net.zyuiop.HangoverGames.Network.Status;
@@ -21,19 +8,8 @@ import net.zyuiop.HangoverGames.Tasks.DrinkTimer;
 import net.zyuiop.HangoverGames.Tasks.LolNoise;
 import net.zyuiop.coinsManager.CoinsManager;
 import net.zyuiop.statsapi.StatsApi;
-
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Color;
-import org.bukkit.FireworkEffect;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.FireworkEffect.Type;
-import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_7_R3.inventory.CraftItemStack;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
@@ -41,15 +17,14 @@ import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.FireworkMeta;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.material.MaterialData;
 import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
+
+import java.io.File;
+import java.util.*;
 public class Arena {
 	
 	/* Arena data */
@@ -71,7 +46,7 @@ public class Arena {
 	public HashMap<UUID, Date> damagedcooldown = new HashMap<UUID, Date>();
 	public HashMap<UUID, Date> antiDouble = new HashMap<UUID, Date>();
 	
-	public HashMap<UUID, BukkitTask> bottleTasks = new HashMap<>();
+	public HashMap<UUID, BukkitTask> bottleTasks = new HashMap<UUID, BukkitTask>();
 	
 	public Integer nocive = 0;
 	public LolNoise noise = null;
@@ -83,39 +58,26 @@ public class Arena {
 	public Objective objective;
 	
 	private BukkitTask gameTime;
-	/*
-	public void playerEffects(Player player) {
-		Integer score = scores.get(player.getUniqueId());
-		if (score == null) score = 1;
-		if (score == 0) score = 1;
-		Integer effect = effectLevel.get(player.getUniqueId());
-		if (effect == null) return;
-		
-		double indice = effect/score;
-		System.out.println("DATA : "+score+" - eff "+effect);
-		for (PotionEffect ef : player.getActivePotionEffects())
-			player.removePotionEffect(ef.getType());
-		
-		if (indice <= 1) {
-			// Confusion only
-			player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 12*20*effect, 0));
-		} else if (indice <= 3.5) {
-			player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, (int)Math.ceil(30*20*indice), 1));
-			player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, (int)Math.ceil(25*20*indice), 0));
-		} else {
-			player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, (int)Math.ceil(30*20*indice), 2));
-			player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, (int)Math.ceil(20*20*indice), 1));
-			player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, (int)Math.ceil(10*indice), 0));
-		} 
-	}
-	*/
+
+
+
 	public String addPlayer(Player player) {
 		if (isPlaying(player.getUniqueId())) {
 			return Messages.DEJA_DANS_ARENE;
 		}
 		
-		if (!canJoin()) {
-			return Messages.ARENE_PLEINE;
+		if (player.hasPermission("hangover.joinstaff")) {
+			if (!canJoinStaff()) {
+				return Messages.ARENE_PLEINE;
+			}
+		} else if (player.hasPermission("hangover.joinvip")) {
+			if (!canJoinVIP()) {
+				return Messages.ARENE_PLEINE;
+			}
+		} else {
+			if (!canJoin()) {
+				return Messages.ARENE_PLEINE;
+			}
 		}
 		
 		if (HangoverGames.instance.arenasManager.getPlayerArena(player.getUniqueId()) != null) {
@@ -184,7 +146,7 @@ public class Arena {
 	    player.getInventory().setItem(0, book);
 	    player.sendMessage(ChatColor.GOLD+"\nBienvenue en "+ChatColor.AQUA+"Hangover Games"+ChatColor.GOLD+" !");
 	    player.sendMessage("Avant de commencer la soirée, n'hésite pas à lire les règles et à voir les effets des alcools disposés dans ton inventaire.\n");
-		HangoverGames.instance.network.sendArenasInfos(false);
+        HangoverGames.instance.network.refreshArena(this);
 		return "good";
 	
 	}
@@ -210,6 +172,14 @@ public class Arena {
 	
 	public boolean canJoin() {
 		return ((status.equals(Status.Available) || status.equals(Status.Starting)) && players.size() < maxPlayers);
+	}
+	
+	public boolean canJoinVIP() {
+		return ((status.equals(Status.Available) || status.equals(Status.Starting)) && players.size() < maxPlayers+2);
+	}
+	
+	public boolean canJoinStaff() {
+		return (status.equals(Status.Available) || status.equals(Status.Starting));
 	}
 	
 	public void forceDrink(Player p) {
@@ -254,7 +224,7 @@ public class Arena {
 	
 	public void refreshPlayers(boolean addPlayers) {
 		if (isGameStarted())  {
-			HangoverGames.instance.network.sendArenasInfos(false);
+            HangoverGames.instance.network.refreshArena(this);
 			return;
 		}
 		
@@ -265,7 +235,7 @@ public class Arena {
 			timer.end();
 			timer = null;
 			status = Status.Available;
-			HangoverGames.instance.network.sendArenasInfos(false);
+            HangoverGames.instance.network.refreshArena(this);
 			return;
 		}
 		
@@ -275,8 +245,8 @@ public class Arena {
 			timer.start();
 			status = Status.Starting;
 		}
-		
-		HangoverGames.instance.network.sendArenasInfos(false);
+
+        HangoverGames.instance.network.refreshArena(this);
 	}
 	
 	public void setupPlayer(Player p) {
@@ -342,7 +312,7 @@ public class Arena {
 		// Détruit le timer
 		if (timer != null) timer.end();
 		timer = null;
-		HangoverGames.instance.network.sendArenasInfos(false);
+        HangoverGames.instance.network.refreshArena(this);
 		
 		this.noise = new LolNoise(this);
 		noise.start();
@@ -357,7 +327,7 @@ public class Arena {
 	public void endGame() {
 		status = Status.Stopping;
 		gameTime.cancel();
-		HangoverGames.instance.network.sendArenasInfos(false);
+        HangoverGames.instance.network.refreshArena(this);
 		for (VirtualPlayer pl : this.players) {
 			HangoverGames.instance.kickPlayer(pl.getPlayer());
 		}
@@ -383,7 +353,7 @@ public class Arena {
 		this.nocive = 0;
 		this.scoreboard = null;
 		this.objective = null;
-		HangoverGames.instance.network.sendArenasInfos(false);
+        HangoverGames.instance.network.refreshArena(this);
 		resetCauldrons();
 	}
 	
@@ -448,7 +418,7 @@ public class Arena {
 		// On fera des trucs ici
 		gameTime.cancel();
 		status = Status.Stopping;
-		HangoverGames.instance.network.sendArenasInfos(false);
+        HangoverGames.instance.network.refreshArena(this);
 		StatsApi.increaseStat(player.getPlayerID(), "trollcade", "hangovergames.wins", 1);
 		
 		for (BukkitTask t : this.bottleTasks.values()) {
@@ -573,12 +543,12 @@ public class Arena {
 			endGame();
 			setupGame();
 		}
-		HangoverGames.instance.network.sendArenasInfos(false);
+		HangoverGames.instance.network.refreshArena(this);
 	}
 	
 	public void setupGame() {
 		status = Status.Available;
-		HangoverGames.instance.network.sendArenasInfos(false);
+		HangoverGames.instance.network.refreshArena(this);
 	}
 	
 	public long getCount() {
