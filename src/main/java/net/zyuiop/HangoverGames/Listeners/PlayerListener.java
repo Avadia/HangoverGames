@@ -1,5 +1,8 @@
 package net.zyuiop.HangoverGames.Listeners;
 
+import net.samagames.network.Network;
+import net.samagames.network.client.GameArena;
+import net.samagames.network.client.GamePlayer;
 import net.zyuiop.HangoverGames.Arena.*;
 import net.zyuiop.HangoverGames.HangoverGames;
 import net.zyuiop.HangoverGames.Messages;
@@ -45,7 +48,7 @@ public class PlayerListener implements Listener {
 				HangoverGames.instance.kickPlayer(event.getPlayer());
 		}
 		
-		Arena ar = HangoverGames.instance.arenasManager.getPlayerArena(event.getPlayer().getUniqueId());
+		Arena ar = (Arena) HangoverGames.instance.getArenaManager().getPlayerArena(event.getPlayer().getUniqueId());
 		
 		
 		if (ar == null || !ar.isGameStarted()) {
@@ -57,16 +60,12 @@ public class PlayerListener implements Listener {
 			if (event.getClickedBlock().getType() == Material.CAULDRON && event.getPlayer().getItemInHand().getType() == Material.GLASS_BOTTLE) {
 				if ((int)event.getClickedBlock().getData() != 0) {
 					
-					
-					
 					// Reset du bloc //
 					ar.fillRandom();
 					event.getClickedBlock().setType(Material.AIR);
-					
-				
-					
+
 					Alcool got = null;
-					int maxNocive = (int) Math.floor(ar.players.size()*0.5);
+					int maxNocive = (int) Math.floor(ar.getPlayers().size()*0.5);
 					while (true) {
 						got = AlcoolRandom.getRandom();
 						if (got.getValue() < 0) {
@@ -140,14 +139,13 @@ public class PlayerListener implements Listener {
 	public void onPlayerChat(AsyncPlayerChatEvent event)
 	{
 		Player player = event.getPlayer();
-		final Arena arena = HangoverGames.instance.arenasManager.getPlayerArena(new VirtualPlayer(player));
+		final GameArena arena = HangoverGames.instance.getArenaManager().getPlayerArena(player.getUniqueId());
 		
-		if(arena == null)
-		{
+		if(arena == null) {
 			return;
 		}
 		event.getRecipients().clear();
-		for (VirtualPlayer p : arena.players)
+		for (GamePlayer p : arena.getPlayers())
 			event.getRecipients().add(p.getPlayer());	   
 		return;   
 	}
@@ -156,7 +154,7 @@ public class PlayerListener implements Listener {
 	public void onPlayerMove(PlayerMoveEvent event) {
 		Block b = event.getTo().getBlock();
 		if (event.getTo().getBlockY() < 0 || (b.isLiquid() && b.getData() < ((byte)4))) {
-			Arena ar = HangoverGames.instance.arenasManager.getPlayerArena(event.getPlayer().getUniqueId());
+			Arena ar = (Arena) HangoverGames.instance.getArenaManager().getPlayerArena(event.getPlayer().getUniqueId());
 			if (ar == null) return;
 			event.getPlayer().teleport(ar.spawn);
 			event.getPlayer().sendMessage(Messages.MAP_END);
@@ -179,45 +177,6 @@ public class PlayerListener implements Listener {
 	}
 	
 	@EventHandler
-	public void onLogin(PlayerLoginEvent e) {
-		Player p = e.getPlayer();
-		ArenasManager m = HangoverGames.instance.arenasManager;
-		if (!m.isAttempted(new VirtualPlayer(p.getUniqueId())) && !p.isOp()) {
-			e.setKickMessage(ChatColor.RED+"Une erreur s'est produite, vous ne pouvez pas joindre l'arène.");
-			e.setResult(Result.KICK_FULL);
-			return;
-		}
-	}
-	
-	@EventHandler
-	public void onPlayerJoin(final PlayerJoinEvent e) {
-		final Player p = e.getPlayer();
-		final ArenasManager m = HangoverGames.instance.arenasManager;
-		final VirtualPlayer vp = new VirtualPlayer(p.getUniqueId());
-		if (!m.isAttempted(vp) && !p.isOp()) {
-			e.getPlayer().sendMessage(ChatColor.RED+"Une erreur s'est produite, vous ne pouvez pas joindre l'arène.");
-			e.getPlayer().kickPlayer("Impossible de vous connecter.");
-			System.out.println("Joueur non attendu.");
-			return;
-		} else if (!m.isAttempted(vp)) {
-			e.getPlayer().sendMessage(ChatColor.GOLD+"Welcome in SANDBOX MODE ! Yay !");
-			return;
-		}
-		
-		e.setJoinMessage(null);
-		
-		String res = m.finishJoin(p);
-		if (!res.equals("good")) {
-			e.getPlayer().sendMessage(ChatColor.RED+"Une erreur s'est produite, vous ne pouvez pas joindre l'arène.");
-			e.getPlayer().sendMessage(ChatColor.RED+"Code erreur : "+res);
-			e.getPlayer().kickPlayer("Impossible de vous connecter.");
-			System.out.println("Erreur de connexion du joueur : "+res);
-			return;
-		}
-			
-	}
-	
-	@EventHandler
 	public void onPlayerDrink(PlayerItemConsumeEvent ev) {
 		ItemStack item = ev.getItem();
 		System.out.println(item.getType().toString());
@@ -229,8 +188,8 @@ public class PlayerListener implements Listener {
 				return;
 			}
 			
-			Arena ar = HangoverGames.instance.arenasManager.getPlayerArena(ev.getPlayer().getUniqueId());
-			if (ar == null || !ar.isGameStarted()) {
+			Arena ar = (Arena) HangoverGames.instance.getArenaManager().getPlayerArena(ev.getPlayer().getUniqueId());
+			if (ar == null || !ar.isStarted()) {
 				ev.setCancelled(true);
 				return;
 			}
@@ -273,7 +232,7 @@ public class PlayerListener implements Listener {
 			
 			
 			if (score >= 15) {
-				ar.win(new VirtualPlayer(ev.getPlayer()));
+				ar.win(new GamePlayer(ev.getPlayer()));
 			}
 		}
 	}
@@ -281,14 +240,6 @@ public class PlayerListener implements Listener {
 	@EventHandler
 	public void onSaturationChange(FoodLevelChangeEvent e) {
 		e.setCancelled(true);
-	}
-	
-	@EventHandler
-	public void onLogout(PlayerQuitEvent event) {
-		Arena ar = HangoverGames.instance.arenasManager.getPlayerArena(event.getPlayer().getUniqueId());
-		if (ar == null) return;
-		ar.stumpPlayer(new VirtualPlayer(event.getPlayer()));
-		HangoverGames.instance.network.refreshArena(ar);
 	}
 	
 	@EventHandler
@@ -314,7 +265,7 @@ public class PlayerListener implements Listener {
 			return;
 		}
 		final Player damaged = (Player) e.getEntity();
-		final Arena ar = HangoverGames.instance.arenasManager.getPlayerArena(damaged.getUniqueId());
+		final Arena ar = (Arena) HangoverGames.instance.getArenaManager().getPlayerArena(damaged.getUniqueId());
 		if (ar == null || !ar.isGameStarted()) {
 			e.setCancelled(true);
 			return;

@@ -11,13 +11,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
 
+import net.samagames.network.Network;
+import net.samagames.network.client.GamePlugin;
 import net.samagames.permissionsapi.PermissionsAPI;
 import net.samagames.permissionsbukkit.PermissionsBukkit;
 import net.zyuiop.HangoverGames.Arena.Alcool;
 import net.zyuiop.HangoverGames.Arena.ArenasManager;
 import net.zyuiop.HangoverGames.Commands.CommandStart;
 import net.zyuiop.HangoverGames.Listeners.PlayerListener;
-import net.zyuiop.HangoverGames.Network.NetworkManager;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -25,16 +26,20 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.plugin.java.JavaPlugin;
 
-public class HangoverGames extends JavaPlugin {
-	
-	public ArenasManager arenasManager;
-	public NetworkManager network;
+public class HangoverGames extends GamePlugin {
+
 	public static HangoverGames instance;
     public PermissionsAPI api;
-	
-	public void onEnable() {		
+
+    public HangoverGames() {
+        super("hangovergames");
+    }
+
+    @Override
+	public void onEnable() {
+        super.onEnable();
+
 		HangoverGames.instance = this;
 		
 		this.saveDefaultConfig();
@@ -44,22 +49,16 @@ public class HangoverGames extends JavaPlugin {
         PermissionsBukkit plugin = (PermissionsBukkit) this.getServer().getPluginManager().getPlugin("SamaPermissionsBukkit");
         api = plugin.getApi();
 		
-		arenasManager = new ArenasManager(this);
-		network = new NetworkManager(this, comPort, BungeeName);
-		arenasManager.loadArenas();
-		network.initListener();
-		network.initInfosSender();
+		arenaManager = new ArenasManager(this);
+        ((ArenasManager)arenaManager).loadArenas();
 		getServer().getPluginManager().registerEvents(new PlayerListener(), this);
 		this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
 		
 		getCommand("start").setExecutor(new CommandStart());
-	}
-	
-	public void onDisable() {
-		Bukkit.getLogger().info("Disabling HangoverGames");
-		arenasManager.disable();
-		network.disable();
-	}
+
+        Network.registerGame(this, comPort, BungeeName);
+    }
+
 	
 	public void kickPlayer(final Player player) {
 		ByteArrayOutputStream b = new ByteArrayOutputStream();

@@ -12,7 +12,7 @@ public class CommandStart implements CommandExecutor {
 
 	public boolean onCommand(CommandSender arg0, Command arg1, String arg2,
 			String[] arg3) {
-		Arena ar = HangoverGames.instance.arenasManager.getPlayerArena(((Player)arg0).getUniqueId());
+		Arena ar = (Arena) HangoverGames.instance.getArenaManager().getPlayerArena(((Player)arg0).getUniqueId());
 		ar.start();
 		return true;
 	}

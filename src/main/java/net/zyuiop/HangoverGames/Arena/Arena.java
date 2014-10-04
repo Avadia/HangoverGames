@@ -1,8 +1,11 @@
 package net.zyuiop.HangoverGames.Arena;
 
+import net.samagames.network.Network;
+import net.samagames.network.client.GameArena;
+import net.samagames.network.client.GamePlayer;
+import net.samagames.network.json.Status;
 import net.zyuiop.HangoverGames.HangoverGames;
 import net.zyuiop.HangoverGames.Messages;
-import net.zyuiop.HangoverGames.Network.Status;
 import net.zyuiop.HangoverGames.Tasks.BeginTimer;
 import net.zyuiop.HangoverGames.Tasks.DrinkTimer;
 import net.zyuiop.HangoverGames.Tasks.LolNoise;
@@ -25,22 +28,16 @@ import org.bukkit.scoreboard.Scoreboard;
 
 import java.io.File;
 import java.util.*;
-public class Arena {
+public class Arena extends GameArena {
 	
 	/* Arena data */
-	public String arenaName;
-	public String mapName;
-	public Integer maxPlayers;
 	public int minPlayers;
-	public UUID arenaId;
 	public ArrayList<Location> cauldrons;
 	public Location spawn;
 	
 	/* Run data */
-	public ArrayList<VirtualPlayer> players = new ArrayList<VirtualPlayer>();
 	public HashMap<UUID, Integer> scores = new HashMap<UUID, Integer>();
 	public HashMap<UUID, Integer> effectLevel = new HashMap<UUID, Integer>();
-	public Status status = Status.Available;
 	public BeginTimer timer =  null;
 	
 	public HashMap<UUID, Date> damagedcooldown = new HashMap<UUID, Date>();
@@ -59,44 +56,30 @@ public class Arena {
 	
 	private BukkitTask gameTime;
 
+    protected Arena(int maxPlayers, int maxVIP, String mapName, UUID arenaID) {
+        super(maxPlayers, maxVIP, mapName, arenaID, false);
+    }
 
-
-	public String addPlayer(Player player) {
-		if (isPlaying(player.getUniqueId())) {
-			return Messages.DEJA_DANS_ARENE;
-		}
-		
-		if (player.hasPermission("hangover.joinstaff")) {
-			if (!canJoinStaff()) {
-				return Messages.ARENE_PLEINE;
-			}
-		} else if (player.hasPermission("hangover.joinvip")) {
-			if (!canJoinVIP()) {
-				return Messages.ARENE_PLEINE;
-			}
-		} else {
-			if (!canJoin()) {
-				return Messages.ARENE_PLEINE;
-			}
-		}
-		
-		if (HangoverGames.instance.arenasManager.getPlayerArena(player.getUniqueId()) != null) {
-			return Messages.DEJA_EN_JEU;
-		}
-				
+    @Override
+    public String finishJoinPlayer(UUID playerID) {
+        Bukkit.getLogger().info("Joining arena : "+this);
+        String ret = super.finishJoinPlayer(playerID);
+        Bukkit.getLogger().info(ret);
+        if (!ret.equals("OK"))
+            return ret;
+		Player player = Bukkit.getPlayer(playerID);
 		// Ajoute le joueur
 		player.sendMessage(Messages.REJOINT_ARENE);
 		player.teleport(this.spawn);
-		players.add(new VirtualPlayer(player));
 		
 		broadcastMessage(Messages.REJOINT_ARENE_BROADCAST.replace("{PSEUDO}", player.getName()).replace("{JOUEURS}", ""+players.size()).replace("{JOUEURS_MAX}", ""+this.maxPlayers));
 		
 		refreshPlayers(true);
 		setupPlayer(player);
 		
-		for (Arena ar : HangoverGames.instance.arenasManager.getArenas().values()) {
-			if (!ar.arenaName.equals(this.arenaName)) {
-				for (VirtualPlayer joueur : ar.players) {
+		for (GameArena ar : HangoverGames.instance.getArenaManager().getArenas().values()) {
+			if (!ar.getArenaID().equals(this.arenaID)) {
+				for (GamePlayer joueur : ar.getPlayers()) {
 					Player j = joueur.getPlayer();
 					if (j != null) {
 						j.hidePlayer(player);
@@ -104,11 +87,10 @@ public class Arena {
 					}
 				}
 			}
-			
 		}
 		
-		ArrayList<VirtualPlayer> removal = new ArrayList<VirtualPlayer>();
-		for (VirtualPlayer joueur : players) {
+		ArrayList<GamePlayer> removal = new ArrayList<>();
+		for (GamePlayer joueur : players) {
 			Player j = joueur.getPlayer();
 			if (j == null) {
 				removal.add(joueur);
@@ -118,7 +100,7 @@ public class Arena {
 			player.showPlayer(j);
 		}
 		
-		for (VirtualPlayer joueur : removal) {
+		for (GamePlayer joueur : removal) {
 			players.remove(joueur);
 		}
 
@@ -146,27 +128,37 @@ public class Arena {
 	    player.getInventory().setItem(0, book);
 	    player.sendMessage(ChatColor.GOLD+"\nBienvenue en "+ChatColor.AQUA+"Hangover Games"+ChatColor.GOLD+" !");
 	    player.sendMessage("Avant de commencer la soirée, n'hésite pas à lire les règles et à voir les effets des alcools disposés dans ton inventaire.\n");
-        HangoverGames.instance.network.refreshArena(this);
-		return "good";
-	
+        Network.getManager().refreshArena(this);
+		return "OK";
 	}
+
+    @Override
+    public void logout(UUID playerID) {
+        super.logout(playerID);
+        stumpPlayer(new GamePlayer(playerID));
+    }
 	
 	/*
 	 * Affiche le message [message] à tous les joueurs de l'arène
 	 */
 	public void broadcastMessage(String message) {
-		for (VirtualPlayer p : players) 
-			p.getPlayer().sendMessage(message);
+		for (GamePlayer p : players) {
+            Player player = Bukkit.getPlayer(p.getPlayerID());
+            if (player != null)
+                player.sendMessage(message);
+        }
 	}
 	
 	/*
 	 * Envoie le son à tous les joueurs
 	 */
 	public void broadcastSound (Sound s) {
-		for (VirtualPlayer p : players) 
+		for (GamePlayer p : players)
 			p.getPlayer().playSound(p.getPlayer().getLocation(), s, 1, 1);
-	}	public void broadcastSound (Sound s, Location l) {
-		for (VirtualPlayer p : players) 
+	}
+
+    public void broadcastSound (Sound s, Location l) {
+		for (GamePlayer p : players)
 			p.getPlayer().playSound(l, s, 2, 1);
 	}
 	
@@ -214,17 +206,17 @@ public class Arena {
 		return (status == Status.InGame);
 	}
 
-	public boolean isPlaying(VirtualPlayer player) {
+	public boolean isPlaying(GamePlayer player) {
 		return players.contains(player);
 	}
 	
 	public boolean isPlaying(UUID player) {
-		return isPlaying(new VirtualPlayer(player));
+		return isPlaying(new GamePlayer(player));
 	}
 	
 	public void refreshPlayers(boolean addPlayers) {
 		if (isGameStarted())  {
-            HangoverGames.instance.network.refreshArena(this);
+            Network.getManager().refreshArena(this);
 			return;
 		}
 		
@@ -235,7 +227,7 @@ public class Arena {
 			timer.end();
 			timer = null;
 			status = Status.Available;
-            HangoverGames.instance.network.refreshArena(this);
+            Network.getManager().refreshArena(this);
 			return;
 		}
 		
@@ -246,7 +238,7 @@ public class Arena {
 			status = Status.Starting;
 		}
 
-        HangoverGames.instance.network.refreshArena(this);
+        Network.getManager().refreshArena(this);
 	}
 	
 	public void setupPlayer(Player p) {
@@ -263,7 +255,7 @@ public class Arena {
 	public void start() {
 		status = Status.InGame;
 		
-		ArrayList<VirtualPlayer> remove = new ArrayList<VirtualPlayer>();
+		ArrayList<GamePlayer> remove = new ArrayList<>();
 		
 		scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
 		objective = scoreboard.registerNewObjective("points", "dummy");
@@ -271,7 +263,7 @@ public class Arena {
 		objective.setDisplaySlot(DisplaySlot.SIDEBAR);
 		objective.getScore(ChatColor.GREEN+"> Objectif : ").setScore(15);
 		
-		for (VirtualPlayer pl : players) {
+		for (GamePlayer pl : players) {
 			Player p = pl.getPlayer();
 			if (p == null) {
 				remove.add(pl);
@@ -312,7 +304,7 @@ public class Arena {
 		// Détruit le timer
 		if (timer != null) timer.end();
 		timer = null;
-        HangoverGames.instance.network.refreshArena(this);
+        Network.getManager().refreshArena(this);
 		
 		this.noise = new LolNoise(this);
 		noise.start();
@@ -327,8 +319,8 @@ public class Arena {
 	public void endGame() {
 		status = Status.Stopping;
 		gameTime.cancel();
-        HangoverGames.instance.network.refreshArena(this);
-		for (VirtualPlayer pl : this.players) {
+        Network.getManager().refreshArena(this);
+		for (GamePlayer pl : this.players) {
 			HangoverGames.instance.kickPlayer(pl.getPlayer());
 		}
 		
@@ -353,7 +345,7 @@ public class Arena {
 		this.nocive = 0;
 		this.scoreboard = null;
 		this.objective = null;
-        HangoverGames.instance.network.refreshArena(this);
+        Network.getManager().refreshArena(this);
 		resetCauldrons();
 	}
 	
@@ -414,11 +406,11 @@ public class Arena {
         return c;
     }
 	
-	public void win(final VirtualPlayer player) {
+	public void win(final GamePlayer player) {
 		// On fera des trucs ici
 		gameTime.cancel();
 		status = Status.Stopping;
-        HangoverGames.instance.network.refreshArena(this);
+        Network.getManager().refreshArena(this);
 		StatsApi.increaseStat(player.getPlayerID(), "trollcade", "hangovergames.wins", 1);
 		
 		for (BukkitTask t : this.bottleTasks.values()) {
@@ -527,7 +519,7 @@ public class Arena {
 		
 	}
 	
-	public void stumpPlayer(VirtualPlayer player) {
+	public void stumpPlayer(GamePlayer player) {
 		this.players.remove(player);
 		if (!this.isGameStarted()){
 			this.refreshPlayers(false);
@@ -543,12 +535,12 @@ public class Arena {
 			endGame();
 			setupGame();
 		}
-		HangoverGames.instance.network.refreshArena(this);
+        Network.getManager().refreshArena(this);
 	}
 	
 	public void setupGame() {
 		status = Status.Available;
-		HangoverGames.instance.network.refreshArena(this);
+        Network.getManager().refreshArena(this);
 	}
 	
 	public long getCount() {
@@ -575,4 +567,9 @@ public class Arena {
 		l.getBlock().setData((byte)1);
 		broadcastSound(Sound.ANVIL_LAND, l);
 	}
+
+    @Override
+    public int countPlayersIngame() {
+        return players.size();
+    }
 }
