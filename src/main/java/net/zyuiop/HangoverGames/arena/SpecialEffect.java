@@ -1,4 +1,4 @@
-package net.zyuiop.HangoverGames.Arena;
+package net.zyuiop.HangoverGames.arena;
 
 import net.zyuiop.HangoverGames.HangoverGames;
 

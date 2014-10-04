@@ -1,4 +1,4 @@
-package net.zyuiop.HangoverGames.Arena;
+package net.zyuiop.HangoverGames.arena;
 
 import java.util.Random;
 

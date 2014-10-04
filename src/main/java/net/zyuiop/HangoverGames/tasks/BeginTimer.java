@@ -1,12 +1,12 @@
-package net.zyuiop.HangoverGames.Tasks;
+package net.zyuiop.HangoverGames.tasks;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 
 import net.zyuiop.HangoverGames.HangoverGames;
 import net.zyuiop.HangoverGames.Messages;
-import net.zyuiop.HangoverGames.Arena.Arena;
-import net.zyuiop.HangoverGames.Arena.VirtualPlayer;
+import net.zyuiop.HangoverGames.arena.Arena;
+import net.zyuiop.HangoverGames.arena.VirtualPlayer;
 
 public class BeginTimer extends Thread {
 

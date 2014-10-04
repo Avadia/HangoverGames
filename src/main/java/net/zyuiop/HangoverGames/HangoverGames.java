@@ -15,10 +15,10 @@ import net.samagames.network.Network;
 import net.samagames.network.client.GamePlugin;
 import net.samagames.permissionsapi.PermissionsAPI;
 import net.samagames.permissionsbukkit.PermissionsBukkit;
-import net.zyuiop.HangoverGames.Arena.Alcool;
-import net.zyuiop.HangoverGames.Arena.ArenasManager;
-import net.zyuiop.HangoverGames.Commands.CommandStart;
-import net.zyuiop.HangoverGames.Listeners.PlayerListener;
+import net.zyuiop.HangoverGames.arena.Alcool;
+import net.zyuiop.HangoverGames.arena.ArenasManager;
+import net.zyuiop.HangoverGames.commands.CommandStart;
+import net.zyuiop.HangoverGames.listeners.PlayerListener;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;

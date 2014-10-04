@@ -1,4 +1,4 @@
-package net.zyuiop.HangoverGames.Arena;
+package net.zyuiop.HangoverGames.arena;
 
 import net.samagames.network.Network;
 import net.samagames.network.client.GameArena;
@@ -6,9 +6,9 @@ import net.samagames.network.client.GamePlayer;
 import net.samagames.network.json.Status;
 import net.zyuiop.HangoverGames.HangoverGames;
 import net.zyuiop.HangoverGames.Messages;
-import net.zyuiop.HangoverGames.Tasks.BeginTimer;
-import net.zyuiop.HangoverGames.Tasks.DrinkTimer;
-import net.zyuiop.HangoverGames.Tasks.LolNoise;
+import net.zyuiop.HangoverGames.tasks.BeginTimer;
+import net.zyuiop.HangoverGames.tasks.DrinkTimer;
+import net.zyuiop.HangoverGames.tasks.LolNoise;
 import net.zyuiop.coinsManager.CoinsManager;
 import net.zyuiop.statsapi.StatsApi;
 import org.bukkit.*;
@@ -30,7 +30,7 @@ import java.io.File;
 import java.util.*;
 public class Arena extends GameArena {
 	
-	/* Arena data */
+	/* arena data */
 	public int minPlayers;
 	public ArrayList<Location> cauldrons;
 	public Location spawn;

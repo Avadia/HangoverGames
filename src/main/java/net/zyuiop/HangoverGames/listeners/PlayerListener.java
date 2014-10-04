@@ -1,9 +1,9 @@
-package net.zyuiop.HangoverGames.Listeners;
+package net.zyuiop.HangoverGames.listeners;
 
 import net.samagames.network.Network;
 import net.samagames.network.client.GameArena;
 import net.samagames.network.client.GamePlayer;
-import net.zyuiop.HangoverGames.Arena.*;
+import net.zyuiop.HangoverGames.arena.*;
 import net.zyuiop.HangoverGames.HangoverGames;
 import net.zyuiop.HangoverGames.Messages;
 import net.zyuiop.statsapi.StatsApi;
@@ -27,7 +27,6 @@ import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.*;
-import org.bukkit.event.player.PlayerLoginEvent.Result;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Arrays;

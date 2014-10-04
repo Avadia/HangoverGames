@@ -1,8 +1,7 @@
-package net.zyuiop.HangoverGames.Arena;
+package net.zyuiop.HangoverGames.arena;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;

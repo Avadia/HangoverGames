@@ -1,21 +1,13 @@
-package net.zyuiop.HangoverGames.Tasks;
-
-import java.util.ArrayList;
+package net.zyuiop.HangoverGames.tasks;
 
 import org.bukkit.scheduler.BukkitRunnable;
-import java.util.Random;
-import java.util.UUID;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
-import net.zyuiop.HangoverGames.HangoverGames;
 import net.zyuiop.HangoverGames.Messages;
-import net.zyuiop.HangoverGames.Arena.Arena;
-import net.zyuiop.HangoverGames.Arena.VirtualPlayer;
+import net.zyuiop.HangoverGames.arena.Arena;
+import net.zyuiop.HangoverGames.arena.VirtualPlayer;
 
 public class DrinkTimer extends BukkitRunnable {
 

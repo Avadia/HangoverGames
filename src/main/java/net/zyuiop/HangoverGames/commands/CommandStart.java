@@ -1,7 +1,7 @@
-package net.zyuiop.HangoverGames.Commands;
+package net.zyuiop.HangoverGames.commands;
 
 import net.zyuiop.HangoverGames.HangoverGames;
-import net.zyuiop.HangoverGames.Arena.Arena;
+import net.zyuiop.HangoverGames.arena.Arena;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
