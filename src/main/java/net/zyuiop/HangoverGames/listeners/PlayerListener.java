@@ -31,6 +31,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.UUID;
 
 public class PlayerListener implements Listener {
 	
@@ -145,7 +146,14 @@ public class PlayerListener implements Listener {
 		}
 		event.getRecipients().clear();
 		for (GamePlayer p : arena.getPlayers())
-			event.getRecipients().add(p.getPlayer());	   
+			event.getRecipients().add(p.getPlayer());
+
+        for (UUID mod : HangoverGames.instance.getArenaManager().getModerating()) {
+            Player p = Bukkit.getPlayer(mod);
+            if (p != null)
+                p.sendMessage(ChatColor.RED+"[SPY|"+arena.getMapName()+"] "+ChatColor.RESET+event.getFormat());
+        }
+
 		return;   
 	}
 	

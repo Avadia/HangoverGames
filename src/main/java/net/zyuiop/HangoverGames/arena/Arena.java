@@ -147,6 +147,12 @@ public class Arena extends GameArena {
             if (player != null)
                 player.sendMessage(message);
         }
+
+        for (UUID mod : HangoverGames.instance.getArenaManager().getModerating()) {
+            Player player = Bukkit.getPlayer(mod);
+            if (player != null)
+                player.sendMessage(ChatColor.RED+"[SPY|"+this.getMapName()+"] "+ChatColor.RESET+message);
+        }
 	}
 	
 	/*

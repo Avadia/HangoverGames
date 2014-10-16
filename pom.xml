@@ -13,6 +13,8 @@
   </properties>
 
     <build>
+        <directory>${project.basedir}/../SamaGames/compiled</directory>
+        <outputDirectory>${project.build.directory}/${project.name}/classes</outputDirectory>
         <resources>
             <resource>
                 <directory>src/main/resources/</directory>
@@ -41,16 +43,8 @@
 
 <repositories>
 		<repository>
-			<id>bukkit-repo</id>
-			<url>http://repo.bukkit.org/content/groups/public/</url>
-		</repository>
-		<repository>
 			<id>sk89q-repo</id>
 			<url>http://maven.sk89q.com/repo/</url>
-		</repository>
-		<repository>
-			<id>geekpower14-repo</id>
-			<url>http://geekpower14.com/repo/maven</url>
 		</repository>
 		<repository>
 			<id>zyuiop-repo</id>
@@ -60,16 +54,10 @@
 
   <dependencies>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8.1</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-			<groupId>org.bukkit</groupId>
-			<artifactId>craftbukkit</artifactId>
+			<groupId>org.spigotmc</groupId>
+			<artifactId>spigot</artifactId>
 			<!-- Bukkit API Version, change if out dated -->
-			<version>1.7.10-R0.1-SNAPSHOT</version>
+			<version>1.8-R0.1-SNAPSHOT</version>
 			<type>jar</type>
 			<scope>provided</scope>
 		</dependency>
@@ -87,7 +75,7 @@
             <scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>net.zyuiop</groupId>
+			<groupId>net.samagames</groupId>
 			<artifactId>MasterBundle</artifactId>
 			<version>1.0.0</version>
             <scope>provided</scope>

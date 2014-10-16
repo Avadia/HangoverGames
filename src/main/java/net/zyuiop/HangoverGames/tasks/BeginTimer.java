@@ -1,12 +1,12 @@
 package net.zyuiop.HangoverGames.tasks;
 
+import net.samagames.network.client.GamePlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 
 import net.zyuiop.HangoverGames.HangoverGames;
 import net.zyuiop.HangoverGames.Messages;
 import net.zyuiop.HangoverGames.arena.Arena;
-import net.zyuiop.HangoverGames.arena.VirtualPlayer;
 
 public class BeginTimer extends Thread {
 
@@ -33,7 +33,7 @@ public class BeginTimer extends Thread {
 				formatTime();
 				setTimeout((int)time);
 				
-				if (parent.players.size() < parent.minPlayers)  {
+				if (parent.getPlayers().size() < parent.minPlayers)  {
 					// Au cas où l'arène ne détecterai pas le manque de joueurs //
 					setTimeout(0);
 					this.end();
@@ -82,7 +82,7 @@ public class BeginTimer extends Thread {
 	public void setTimeout(int seconds) {
 		boolean ring = false;
 		if (seconds <= 5 && seconds != 0) ring = true;
-		for (VirtualPlayer p : parent.players) {
+		for (GamePlayer p : parent.getPlayers()) {
 			p.getPlayer().setLevel(seconds);
 			if (ring) p.getPlayer().playSound(p.getPlayer().getLocation(), Sound.NOTE_PIANO, 1 , 1);
 			if (seconds == 0) p.getPlayer().playSound(p.getPlayer().getLocation(), Sound.NOTE_PLING, 1 , 1);

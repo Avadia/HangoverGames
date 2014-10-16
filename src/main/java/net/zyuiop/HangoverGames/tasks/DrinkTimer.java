@@ -7,7 +7,6 @@ import org.bukkit.entity.Player;
 
 import net.zyuiop.HangoverGames.Messages;
 import net.zyuiop.HangoverGames.arena.Arena;
-import net.zyuiop.HangoverGames.arena.VirtualPlayer;
 
 public class DrinkTimer extends BukkitRunnable {
 
