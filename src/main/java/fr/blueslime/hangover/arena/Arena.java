@@ -53,6 +53,10 @@ public class Arena extends Game<GamePlayer>
         this.cauldrons = cauldrons;
         this.spawn = spawn;
         this.nocive = 0;
+
+        this.objective = new ObjectiveSign("bar", ChatColor.GREEN + "" + ChatColor.BOLD + "HangoverGames");
+        this.objective.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "HangoverGames" + ChatColor.WHITE + " | " + ChatColor.AQUA + "00:00");
+        this.objective.getScore(ChatColor.GREEN+"> Objectif : ").setScore(15);
     }
 
     @Override
@@ -60,9 +64,8 @@ public class Arena extends Game<GamePlayer>
     {
         super.startGame();
 
-        objective = new ObjectiveSign("bar", ChatColor.GREEN + "" + ChatColor.BOLD + "HangoverGames");
-        objective.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "HangoverGames" + ChatColor.WHITE + " | " + ChatColor.AQUA + "00:00");
-        objective.getScore(ChatColor.GREEN+"> Objectif : ").setScore(15);
+        this.objective.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "HangoverGames" + ChatColor.WHITE + " | " + ChatColor.AQUA + "00:00");
+        this.objective.getScore(ChatColor.GREEN+"> Objectif : ").setScore(15);
 
         for (GamePlayer gamePlayer : this.getInGamePlayers().values())
         {
