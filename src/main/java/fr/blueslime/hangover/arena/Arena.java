@@ -82,6 +82,7 @@ public class Arena extends Game<GamePlayer>
 
             this.objective.getScore(player.getName()).setScore(1);
             this.objective.getScore(player.getName()).setScore(0);
+            this.scores.put(player.getUniqueId(), 0);
 
             this.increaseStat(player.getUniqueId(), "played_games", 1);
         }
@@ -222,19 +223,19 @@ public class Arena extends Game<GamePlayer>
 
             if (i == 1)
             {
-                this.addCoins(player, 50, "1er");
-                this.addStars(player, 1, "1er");
-                first = player;
+                this.addCoins(p, 50, "1er");
+                this.addStars(p, 1, "1er");
+                first = p;
             }
             else if (i == 2)
             {
-                this.addCoins(player, 30, "2eme");
-                second = player;
+                this.addCoins(p, 30, "2eme");
+                second = p;
             }
             else if (i == 3)
             {
-                this.addCoins(player, 10, "3eme");
-                third = player;
+                this.addCoins(p, 10, "3eme");
+                third = p;
             }
             else if (i == top.size())
             {
