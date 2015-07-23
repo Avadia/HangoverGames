@@ -10,7 +10,6 @@ import net.samagames.api.games.GamePlayer;
 import net.samagames.api.games.themachine.messages.templates.PlayerLeaderboardWinTemplate;
 import net.samagames.tools.ColorUtils;
 import net.samagames.tools.GameUtils;
-import net.samagames.tools.scoreboards.ObjectiveSign;
 import org.bukkit.*;
 import org.bukkit.FireworkEffect.Type;
 import org.bukkit.entity.EntityType;
@@ -23,6 +22,9 @@ import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Scoreboard;
 
 import java.util.*;
 
@@ -37,7 +39,8 @@ public class Arena extends Game<GamePlayer>
     private Location spawn;
     private LolNoise noise;
     private Integer nocive;
-    private ObjectiveSign objective;
+    private Scoreboard scoreboard;
+    private Objective objective;
 	private BukkitTask gameTime;
 
     public Arena(Location spawn, ArrayList<Location> cauldrons)
@@ -54,9 +57,10 @@ public class Arena extends Game<GamePlayer>
         this.spawn = spawn;
         this.nocive = 0;
 
-        this.objective = new ObjectiveSign("bar", ChatColor.GREEN + "" + ChatColor.BOLD + "HangoverGames");
-        this.objective.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "HangoverGames" + ChatColor.WHITE + " | " + ChatColor.AQUA + "00:00");
-        this.objective.getScore(ChatColor.GREEN+"> Objectif : ").setScore(15);
+        this.scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+        this.objective = this.scoreboard.registerNewObjective("points", "dummy");
+        this.objective.setDisplayName(ChatColor.DARK_RED + "Taux d'alcool (g/L)");
+        this.objective.setDisplaySlot(DisplaySlot.SIDEBAR);
     }
 
     @Override
@@ -74,6 +78,10 @@ public class Arena extends Game<GamePlayer>
             this.setupPlayer(player);
             player.getInventory().addItem(this.getEmptyBottle());
             player.teleport(this.spawn);
+            player.setScoreboard(this.scoreboard);
+
+            this.objective.getScore(player.getDisplayName()).setScore(1);
+            this.objective.getScore(player.getDisplayName()).setScore(0);
 
             this.increaseStat(player.getUniqueId(), "played_games", 1);
         }
@@ -87,7 +95,6 @@ public class Arena extends Game<GamePlayer>
             {
                 this.time++;
                 objective.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "HangoverGames" + ChatColor.WHITE + " | " + ChatColor.AQUA + this.formatTime(this.time));
-                objective.updateLines();
             }
 
             public String formatTime(int time)
@@ -111,13 +118,11 @@ public class Arena extends Game<GamePlayer>
     }
 
     @Override
-    public void handleLogin(Player player)
-    {
+    public void handleLogin(Player player) {
         super.handleLogin(player);
 
         player.teleport(this.spawn);
 
-        this.objective.addReceiver(player);
         this.setupPlayer(player);
 
         player.getInventory().setItem(8, this.coherenceMachine.getLeaveItem());
@@ -387,7 +392,7 @@ public class Arena extends Game<GamePlayer>
         return this.spawn;
     }
 
-    public ObjectiveSign getObjective()
+    public Objective getObjective()
     {
         return this.objective;
     }

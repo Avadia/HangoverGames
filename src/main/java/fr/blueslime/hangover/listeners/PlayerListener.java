@@ -47,6 +47,8 @@ public class PlayerListener implements Listener
         {
 			if (event.getItem() != null && event.getItem().getType().equals(Material.WOOD_DOOR)) 
 				SamaGamesAPI.get().getGameManager().kickPlayer(event.getPlayer(), null);
+            if (event.getItem() != null && event.getItem().getType().equals(Material.WRITTEN_BOOK))
+                return;
 		}
 		
 		Arena arena = HangoverGames.getInstance().getArena();
@@ -211,7 +213,6 @@ public class PlayerListener implements Listener
 			Integer score = arena.getScores().get(event.getPlayer().getUniqueId());
 			if (score == null) score = 0;
 			Integer value = alcool.getValue();
-			Bukkit.getLogger().info("Value : "+value);
 			score += value;
 			if (score < 0) score = 0;
             arena.getScores().put(event.getPlayer().getUniqueId(), score);
@@ -360,8 +361,8 @@ public class PlayerListener implements Listener
                 damager.getInventory().clear();
                 damaged.getInventory().clear();
 
-                damager.sendMessage(ChatColor.GREEN+"Vous avez échangé de bouteille avec " + ChatColor.RED + damaged.getName());
-                damaged.sendMessage(ChatColor.RED+"Vous avez échangé de bouteille avec " + ChatColor.GREEN + damager.getName());
+                damager.sendMessage(ChatColor.GREEN + "Vous avez échangé de bouteille avec " + ChatColor.RED + damaged.getName());
+                damaged.sendMessage(ChatColor.RED + "Vous avez échangé de bouteille avec " + ChatColor.GREEN + damager.getName());
 
                 final ItemStack damagerBottleFinal = damagerBottle;
                 final ItemStack damagedBottleFinal = damagedBottle;

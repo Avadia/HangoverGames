@@ -138,7 +138,7 @@ public enum Alcool
         String pointsStr;
 
         if (this.getValue() < 0)
-            pointsStr = ChatColor.RED + "-" + this.getValue()+" g/L";
+            pointsStr = ChatColor.RED + "" + this.getValue()+" g/L";
         else
             pointsStr = ChatColor.GREEN + "+" + this.getValue()+" g/L";
 
