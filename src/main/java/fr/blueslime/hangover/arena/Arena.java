@@ -241,7 +241,12 @@ public class Arena extends Game<GamePlayer>
             {
                 last = p;
             }
+            System.out.println("TOP] " + i + ") " + p.getName());
         }
+
+        System.out.println("1] " + first.getName() + " - " + this.scores.get(first.getUniqueId()));
+        System.out.println("2] " + second.getName() + " - " + this.scores.get(second.getUniqueId()));
+        System.out.println("3] " + third.getName() + " - " + this.scores.get(third.getUniqueId()));
 
         PlayerLeaderboardWinTemplate template = SamaGamesAPI.get().getGameManager().getCoherenceMachine().getTemplateManager().getPlayerLeaderboardWinTemplate();
         template.execute(first, second, third, null, this.scores.get(first.getUniqueId()), this.scores.get(second.getUniqueId()), this.scores.get(third.getUniqueId()));
