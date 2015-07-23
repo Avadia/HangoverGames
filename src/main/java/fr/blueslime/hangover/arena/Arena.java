@@ -40,9 +40,9 @@ public class Arena extends Game<GamePlayer>
     private ObjectiveSign objective;
 	private BukkitTask gameTime;
 
-    protected Arena(Location spawn, ArrayList<Location> cauldrons)
+    public Arena(Location spawn, ArrayList<Location> cauldrons)
     {
-        super("hangovergames", "HangoverGames", GamePlayer.class);
+        super("arcade", "HangoverGames", GamePlayer.class);
 
         this.scores = new HashMap<>();
         this.effectLevel = new HashMap<>();
