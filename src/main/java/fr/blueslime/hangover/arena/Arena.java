@@ -69,7 +69,7 @@ public class Arena extends Game<GamePlayer>
         super.startGame();
 
         this.objective.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "HangoverGames" + ChatColor.WHITE + " | " + ChatColor.AQUA + "00:00");
-        this.objective.getScore(ChatColor.GREEN+"> Objectif : ").setScore(15);
+        this.objective.getScore(ChatColor.GREEN + "> Objectif : ").setScore(15);
 
         for (GamePlayer gamePlayer : this.getInGamePlayers().values())
         {
@@ -80,8 +80,8 @@ public class Arena extends Game<GamePlayer>
             player.teleport(this.spawn);
             player.setScoreboard(this.scoreboard);
 
-            this.objective.getScore(player.getDisplayName()).setScore(1);
-            this.objective.getScore(player.getDisplayName()).setScore(0);
+            this.objective.getScore(player.getName()).setScore(1);
+            this.objective.getScore(player.getName()).setScore(0);
 
             this.increaseStat(player.getUniqueId(), "played_games", 1);
         }
@@ -118,7 +118,8 @@ public class Arena extends Game<GamePlayer>
     }
 
     @Override
-    public void handleLogin(Player player) {
+    public void handleLogin(Player player)
+    {
         super.handleLogin(player);
 
         player.teleport(this.spawn);
@@ -159,7 +160,8 @@ public class Arena extends Game<GamePlayer>
         {
 			if (stack.getType().equals(Material.GLASS_BOTTLE)) return;
 
-			if (stack.getType().equals(Material.POTION)) {
+			if (stack.getType().equals(Material.POTION))
+            {
                 bottle = stack;
 				break;
 			}
@@ -247,11 +249,13 @@ public class Arena extends Game<GamePlayer>
         if (last != null)
             Bukkit.broadcastMessage(ChatColor.GOLD + "Heureusement que " + ChatColor.AQUA + last.getName() + ChatColor.GOLD + " n'a pas trop bû et les ramènera en voiture !");
 
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(HangoverGames.getInstance(), new Runnable() {
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(HangoverGames.getInstance(), new Runnable()
+        {
             int number = (int) (10 * 1.5);
             int count = 0;
 
-            public void run() {
+            public void run()
+            {
                 if (this.count >= this.number || player.getPlayer() == null)
                     return;
 
