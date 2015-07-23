@@ -210,13 +210,18 @@ public class PlayerListener implements Listener
 				return;
 			}
 
-			Integer score = arena.getScores().get(event.getPlayer().getUniqueId());
-			if (score == null) score = 0;
-			Integer value = alcool.getValue();
-			score += value;
-			if (score < 0) score = 0;
-            arena.getScores().put(event.getPlayer().getUniqueId(), score);
+			int score = 0;
 
+			if (arena.getScores().containsKey(event.getPlayer().getUniqueId()))
+                score = arena.getScores().get(event.getPlayer().getUniqueId());
+
+			int value = alcool.getValue();
+			score += value;
+
+			if (score < 0)
+                score = 0;
+
+            arena.getScores().put(event.getPlayer().getUniqueId(), score);
             arena.getObjective().getScore(event.getPlayer().getName()).setScore(score);
 			
 			if (alcool.getValue() < 0)

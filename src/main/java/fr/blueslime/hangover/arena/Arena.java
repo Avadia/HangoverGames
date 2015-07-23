@@ -144,7 +144,6 @@ public class Arena extends Game<GamePlayer>
 
         player.getInventory().setItem(0, book);
         player.getInventory().setItem(8, this.coherenceMachine.getLeaveItem());
-        player.sendMessage("Avant de commencer la soirée, n'hésite pas à lire les règles et à voir les effets des alcools disposés dans ton inventaire.\n");
 
         this.gameManager.refreshArena();
     }
@@ -237,11 +236,16 @@ public class Arena extends Game<GamePlayer>
                 this.addCoins(player, 10, "3eme");
                 third = player;
             }
-            else
+            else if (i == top.size())
             {
                 last = p;
             }
+            System.out.println("TOP] " + i + ") " + p.getName());
         }
+
+        System.out.println("1] " + first.getName());
+        System.out.println("2] " + second.getName());
+        System.out.println("3] " + third.getName());
 
         PlayerLeaderboardWinTemplate template = SamaGamesAPI.get().getGameManager().getCoherenceMachine().getTemplateManager().getPlayerLeaderboardWinTemplate();
         template.execute(first, second, third, null, this.scores.get(first.getUniqueId()), this.scores.get(second.getUniqueId()), this.scores.get(third.getUniqueId()));
