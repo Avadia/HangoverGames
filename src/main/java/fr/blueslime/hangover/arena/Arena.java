@@ -59,7 +59,7 @@ public class Arena extends Game<GamePlayer>
 
         this.scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
         this.objective = this.scoreboard.registerNewObjective("points", "dummy");
-        this.objective.setDisplayName(ChatColor.DARK_RED + "Taux d'alcool (g/L)");
+        this.objective.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "HangoverGames" + ChatColor.WHITE + " | " + ChatColor.AQUA + "00:00");
         this.objective.setDisplaySlot(DisplaySlot.SIDEBAR);
     }
 
@@ -124,26 +124,7 @@ public class Arena extends Game<GamePlayer>
         super.handleLogin(player);
 
         player.teleport(this.spawn);
-
         this.setupPlayer(player);
-
-        player.getInventory().setItem(8, this.coherenceMachine.getLeaveItem());
-
-        ItemStack book = new ItemStack(Material.WRITTEN_BOOK, 1);
-        BookMeta bm = (BookMeta)book.getItemMeta();
-        bm.setAuthor("SamaGames - zyuiop");
-        bm.setTitle("Règles du jeu");
-
-        ArrayList<String> pages = new ArrayList<>();
-        pages.add(ChatColor.GOLD + "Bienvenue dans les " + ChatColor.DARK_AQUA + "Hangover Games" + ChatColor.DARK_GREEN + " ! \n\n > Sommaire : " + ChatColor.BLACK + "\n\n P.2: Principe du jeu \n P.3: Fonctionnement\n\n" + ChatColor.RED + "L'abus d'alcool est dangereux pour la santé.\n\n" + ChatColor.BLACK + "Jeu : zyuiop & IamBlueSlime");
-        pages.add(ChatColor.DARK_GREEN + "Principe du jeu :" + ChatColor.BLACK + "\n\nLe but du jeu est de boire le plus possible pour être le premier à avoir 15 grammes d'alcool dans le sang. Certains alcools font vomir et perdre de l'alcool.");
-        pages.add(ChatColor.DARK_GREEN + "Fonctionnement :" + ChatColor.BLACK + "\n\n- Il y a des marmites réparties sur la map. Remplis ta bouteille dans une marmite et obtiens un alcool au hasard. La marmite disparait et réaparait à un autre endroit de la map.");
-        pages.add(ChatColor.DARK_GREEN + "Fonctionnement :" + ChatColor.BLACK + "\n\n- Bois la bouteille et gagne / perd des points\n- N'hésite pas à taper tes amis pour échanger ta bouteille si l'alcool ne te plait pas !\n- Le premier à " + ChatColor.DARK_AQUA + "15 points" + ChatColor.BLACK + " gagne.");
-
-        bm.setPages(pages);
-        book.setItemMeta(bm);
-
-        player.getInventory().setItem(0, book);
         player.getInventory().setItem(8, this.coherenceMachine.getLeaveItem());
 
         this.gameManager.refreshArena();
