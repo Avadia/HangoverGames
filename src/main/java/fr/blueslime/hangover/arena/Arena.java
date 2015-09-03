@@ -10,6 +10,8 @@ import net.samagames.api.games.GamePlayer;
 import net.samagames.api.games.themachine.messages.templates.PlayerLeaderboardWinTemplate;
 import net.samagames.tools.ColorUtils;
 import net.samagames.tools.GameUtils;
+import net.samagames.tools.scoreboards.ObjectiveSign;
+import net.samagames.tools.scoreboards.VObjective;
 import org.bukkit.*;
 import org.bukkit.FireworkEffect.Type;
 import org.bukkit.entity.EntityType;
@@ -17,14 +19,10 @@ import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.scoreboard.DisplaySlot;
-import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Scoreboard;
 
 import java.util.*;
 
@@ -39,8 +37,7 @@ public class Arena extends Game<GamePlayer>
     private Location spawn;
     private LolNoise noise;
     private Integer nocive;
-    private Scoreboard scoreboard;
-    private Objective objective;
+    private VObjective objective;
 	private BukkitTask gameTime;
 
     public Arena(Location spawn, ArrayList<Location> cauldrons)
@@ -57,10 +54,8 @@ public class Arena extends Game<GamePlayer>
         this.spawn = spawn;
         this.nocive = 0;
 
-        this.scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
-        this.objective = this.scoreboard.registerNewObjective("points", "dummy");
+        this.objective = new ObjectiveSign("hangoverbar", ChatColor.GREEN + "" + ChatColor.BOLD + "HangoverGames" + ChatColor.WHITE + " | " + ChatColor.AQUA + "00:00");
         this.objective.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "HangoverGames" + ChatColor.WHITE + " | " + ChatColor.AQUA + "00:00");
-        this.objective.setDisplaySlot(DisplaySlot.SIDEBAR);
     }
 
     @Override
@@ -78,8 +73,8 @@ public class Arena extends Game<GamePlayer>
             this.setupPlayer(player);
             player.getInventory().addItem(this.getEmptyBottle());
             player.teleport(this.spawn);
-            player.setScoreboard(this.scoreboard);
 
+            this.objective.addReceiver(player);
             this.objective.getScore(player.getName()).setScore(1);
             this.objective.getScore(player.getName()).setScore(0);
             this.scores.put(player.getUniqueId(), 0);
@@ -96,6 +91,7 @@ public class Arena extends Game<GamePlayer>
             {
                 this.time++;
                 objective.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "HangoverGames" + ChatColor.WHITE + " | " + ChatColor.AQUA + this.formatTime(this.time));
+                objective.update();
             }
 
             public String formatTime(int time)
@@ -109,6 +105,8 @@ public class Arena extends Game<GamePlayer>
                 return mins + ":" + secsSTR;
             }
         }, 0L, 20L);
+
+        Bukkit.broadcastMessage(Messages.alcoolWarning.toString());
 
         this.noise.start();
 
@@ -128,6 +126,14 @@ public class Arena extends Game<GamePlayer>
         player.getInventory().setItem(8, this.coherenceMachine.getLeaveItem());
 
         this.gameManager.refreshArena();
+    }
+
+    @Override
+    public void handleLogout(Player player)
+    {
+        super.handleLogout(player);
+
+        this.objective.removeReceiver(player);
     }
 
 	public void forceDrink(Player player)
@@ -377,7 +383,7 @@ public class Arena extends Game<GamePlayer>
         return this.spawn;
     }
 
-    public Objective getObjective()
+    public VObjective getObjective()
     {
         return this.objective;
     }

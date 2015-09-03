@@ -9,7 +9,8 @@ public enum Messages
 	pointsLost(ChatColor.AQUA + "${PLAYER}" + ChatColor.YELLOW + " vomit et " + ChatColor.RED + "perd ${NUMBER} gramme(s)" + ChatColor.YELLOW + " en buvant : ${ALCOOL}.", true),
 	tooLateAlcool(ChatColor.AQUA + "${PLAYER}" + ChatColor.YELLOW + " ne peut plus se retenir et boit sa bouteille.", true),
 	warningAlccol(ChatColor.GOLD + "Vous commencez à crever de soif...", false),
-	mapEnd(ChatColor.GOLD + "He ! Ho ! Où tu vas ? Reviens boire avec nous !", true);
+	mapEnd(ChatColor.GOLD + "He ! Ho ! Où tu vas ? Reviens boire avec nous !", true),
+    alcoolWarning(ChatColor.RED + "" + ChatColor.BOLD + "Attention !" + ChatColor.RESET + ChatColor.RED + " L'abus d'alcool est dangereux pour la santé !", false);
 
     private String message;
     private boolean tag;
