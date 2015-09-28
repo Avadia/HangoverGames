@@ -122,6 +122,15 @@ public class Arena extends Game<GamePlayer>
     }
 
     @Override
+    public void handlePostRegistration()
+    {
+        super.handlePostRegistration();
+
+        this.coherenceMachine.setStartCountdownCatchPhrase("Préparez-vous à boire !");
+        this.coherenceMachine.setNameShortcut("HG");
+    }
+
+    @Override
     public void handleLogin(Player player)
     {
         super.handleLogin(player);
