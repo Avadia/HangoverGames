@@ -10,6 +10,7 @@ import net.samagames.api.games.GamePlayer;
 import net.samagames.api.games.themachine.messages.templates.PlayerLeaderboardWinTemplate;
 import net.samagames.tools.ColorUtils;
 import net.samagames.tools.GameUtils;
+import net.samagames.tools.chat.ActionBarAPI;
 import net.samagames.tools.scoreboards.ObjectiveSign;
 import net.samagames.tools.scoreboards.VObjective;
 import org.bukkit.*;
@@ -42,7 +43,7 @@ public class Arena extends Game<GamePlayer>
 
     public Arena(Location spawn, ArrayList<Location> cauldrons)
     {
-        super("arcade", "HangoverGames", GamePlayer.class);
+        super("arcade", "HangoverGames", "Boissons illimités pour tous !", GamePlayer.class);
 
         this.scores = new HashMap<>();
         this.effectLevel = new HashMap<>();
@@ -101,6 +102,10 @@ public class Arena extends Game<GamePlayer>
                 int secs = remainder;
 
                 String secsSTR = (secs < 10) ? "0"+secs : secs+"";
+
+                if(secs == 15 || secs == 30 || secs == 45 || secs == 59)
+                    for(Player player : Bukkit.getOnlinePlayers())
+                        ActionBarAPI.sendPermanentMessage(player, Messages.actionBarWarning.toString());
 
                 return mins + ":" + secsSTR;
             }
