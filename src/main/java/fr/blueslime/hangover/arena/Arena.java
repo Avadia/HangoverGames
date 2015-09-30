@@ -43,7 +43,7 @@ public class Arena extends Game<GamePlayer>
 
     public Arena(Location spawn, ArrayList<Location> cauldrons)
     {
-        super("arcade", "HangoverGames", "Boissons illimités pour tous !", GamePlayer.class);
+        super("arcade", "HangoverGames", "Boissons illimitées pour tous !", GamePlayer.class);
 
         this.scores = new HashMap<>();
         this.effectLevel = new HashMap<>();
