@@ -7,6 +7,7 @@ import fr.blueslime.hangover.arena.AlcoolRandom;
 import fr.blueslime.hangover.arena.Arena;
 import net.samagames.api.SamaGamesAPI;
 import net.samagames.tools.GameUtils;
+import net.samagames.tools.PlayerUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -118,7 +119,7 @@ public class PlayerListener implements Listener
 					
 					if (got.equals(Alcool.WHISKY))
                     {
-						Bukkit.broadcastMessage(ChatColor.AQUA + event.getPlayer().getName() + ChatColor.GOLD + " a retrouvé une bouteille de " + ChatColor.GREEN + "Whisky" + ChatColor.GOLD + " dans sa cave !");
+						Bukkit.broadcastMessage(ChatColor.AQUA + event.getPlayer().getName() + ChatColor.GOLD + " a trouvé une bouteille de " + ChatColor.GREEN + "Whisky" + ChatColor.GOLD + " dans sa cave !");
 						event.getPlayer().getWorld().strikeLightningEffect(event.getPlayer().getLocation());
 					}
 				}
@@ -222,7 +223,7 @@ public class PlayerListener implements Listener
                 score = 0;
 
             arena.getScores().put(event.getPlayer().getUniqueId(), score);
-            arena.getObjective().getScore(event.getPlayer().getName()).setScore(score);
+            arena.getObjective().getScore(PlayerUtils.getColoredFormattedPlayerName(event.getPlayer())).setScore(score);
 			
 			if (alcool.getValue() < 0)
                 arena.setNocive((arena.getNocive() - 1));

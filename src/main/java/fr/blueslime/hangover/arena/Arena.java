@@ -10,8 +10,8 @@ import net.samagames.api.games.GamePlayer;
 import net.samagames.api.games.themachine.messages.templates.PlayerLeaderboardWinTemplate;
 import net.samagames.tools.ColorUtils;
 import net.samagames.tools.GameUtils;
+import net.samagames.tools.PlayerUtils;
 import net.samagames.tools.chat.ActionBarAPI;
-import net.samagames.tools.scoreboards.ObjectiveSign;
 import net.samagames.tools.scoreboards.VObjective;
 import org.bukkit.*;
 import org.bukkit.FireworkEffect.Type;
@@ -55,7 +55,7 @@ public class Arena extends Game<GamePlayer>
         this.spawn = spawn;
         this.nocive = 0;
 
-        this.objective = new ObjectiveSign("hangoverbar", ChatColor.GREEN + "" + ChatColor.BOLD + "HangoverGames" + ChatColor.WHITE + " | " + ChatColor.AQUA + "00:00");
+        this.objective = new VObjective("hangoverbar", ChatColor.GREEN + "" + ChatColor.BOLD + "HangoverGames" + ChatColor.WHITE + " | " + ChatColor.AQUA + "00:00");
         this.objective.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "HangoverGames" + ChatColor.WHITE + " | " + ChatColor.AQUA + "00:00");
     }
 
@@ -76,8 +76,8 @@ public class Arena extends Game<GamePlayer>
             player.teleport(this.spawn);
 
             this.objective.addReceiver(player);
-            this.objective.getScore(player.getName()).setScore(1);
-            this.objective.getScore(player.getName()).setScore(0);
+            this.objective.getScore(PlayerUtils.getColoredFormattedPlayerName(player)).setScore(1);
+            this.objective.getScore(PlayerUtils.getColoredFormattedPlayerName(player)).setScore(0);
             this.scores.put(player.getUniqueId(), 0);
 
             this.increaseStat(player.getUniqueId(), "played_games", 1);
