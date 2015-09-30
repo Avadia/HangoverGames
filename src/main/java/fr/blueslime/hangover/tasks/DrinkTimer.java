@@ -1,7 +1,7 @@
 package fr.blueslime.hangover.tasks;
 
-import fr.blueslime.hangover.Messages;
 import fr.blueslime.hangover.arena.Arena;
+import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -29,7 +29,7 @@ public class DrinkTimer extends BukkitRunnable
 		}
 		
 		if (this.time == 10)
-            this.player.sendMessage(Messages.warningAlccol.toString());
+            this.player.sendMessage(ChatColor.GOLD + "Vous commencez à crever de soif...");
 
         this.player.setLevel(this.time);
 		

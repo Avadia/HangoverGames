@@ -1,7 +1,6 @@
 package fr.blueslime.hangover.listeners;
 
 import fr.blueslime.hangover.HangoverGames;
-import fr.blueslime.hangover.Messages;
 import fr.blueslime.hangover.arena.Alcool;
 import fr.blueslime.hangover.arena.AlcoolRandom;
 import fr.blueslime.hangover.arena.Arena;
@@ -169,7 +168,7 @@ public class PlayerListener implements Listener
         {
 			Arena arena = HangoverGames.getInstance().getArena();
 			event.getPlayer().teleport(arena.getSpawn());
-			event.getPlayer().sendMessage(Messages.mapEnd.toString());
+			event.getPlayer().sendMessage(SamaGamesAPI.get().getGameManager().getCoherenceMachine().getGameTag() + ChatColor.GOLD + " He ! Ho ! Où tu vas ? Reviens boire avec nous !");
 		} 
 	}
 	
@@ -241,12 +240,12 @@ public class PlayerListener implements Listener
 			
 			if (alcool.getValue() < 0)
             {
-                Bukkit.broadcastMessage(Messages.pointsLost.toString().replace("${PLAYER}", event.getPlayer().getName()).replace("${NUMBER}", "" + alcool.getValue() * -1).replace("${ALCOOL}", alcool.getName()));
+                Bukkit.broadcastMessage(SamaGamesAPI.get().getGameManager().getCoherenceMachine().getGameTag() + " " + ChatColor.AQUA + event.getPlayer().getName() + ChatColor.YELLOW + " " + ChatColor.RED + "a perdu " + alcool.getValue() * -1 + " gramme(s)" + ChatColor.YELLOW + " en buvant : " + alcool.getName() + ".");
                 GameUtils.broadcastSound(Sound.HORSE_ZOMBIE_DEATH, event.getPlayer().getLocation());
 			}
             else
             {
-                Bukkit.broadcastMessage(Messages.pointsGained.toString().replace("${PLAYER}", event.getPlayer().getName()).replace("${NUMBER}", "" + alcool.getValue()).replace("${ALCOOL}", alcool.getName()));
+                Bukkit.broadcastMessage(SamaGamesAPI.get().getGameManager().getCoherenceMachine().getGameTag() + " " + ChatColor.AQUA + event.getPlayer().getName() + ChatColor.YELLOW + " " + ChatColor.GREEN + "a gagné " + alcool.getValue() + " gramme(s)" + ChatColor.YELLOW + " en buvant : " + alcool.getName() + ".");
                 GameUtils.broadcastSound(Sound.BURP, event.getPlayer().getLocation());
 			}
 			

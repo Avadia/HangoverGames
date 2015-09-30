@@ -1,7 +1,6 @@
 package fr.blueslime.hangover.arena;
 
 import fr.blueslime.hangover.HangoverGames;
-import fr.blueslime.hangover.Messages;
 import fr.blueslime.hangover.tasks.DrinkTimer;
 import fr.blueslime.hangover.tasks.LolNoise;
 import net.samagames.api.SamaGamesAPI;
@@ -71,7 +70,7 @@ public class Arena extends Game<GamePlayer>
         super.startGame();
 
         this.objective.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "HangoverGames" + ChatColor.WHITE + " | " + ChatColor.AQUA + "00:00");
-        this.objective.getScore(ChatColor.GREEN + "> Objectif : ").setScore(15);
+        this.objective.getScore(ChatColor.GOLD + "▪ Objectif : ").setScore(15);
 
         for (GamePlayer gamePlayer : this.getInGamePlayers().values())
         {
@@ -106,17 +105,17 @@ public class Arena extends Game<GamePlayer>
                 int remainder = time - mins * 60;
                 int secs = remainder;
 
-                String secsSTR = (secs < 10) ? "0"+secs : secs+"";
+                String secsSTR = (secs < 10) ? "0" + secs : secs + "";
 
                 if(secs == 15 || secs == 30 || secs == 45 || secs == 59)
                     for(Player player : Bukkit.getOnlinePlayers())
-                        ActionBarAPI.sendPermanentMessage(player, Messages.actionBarWarning.toString());
+                        ActionBarAPI.sendPermanentMessage(player, ChatColor.RED + "" + ChatColor.UNDERLINE + "L'abus d'alcool est dangereux pour la santé !");
 
                 return mins + ":" + secsSTR;
             }
         }, 0L, 20L);
 
-        Bukkit.broadcastMessage(Messages.alcoolWarning.toString());
+        Bukkit.broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "Attention !" + ChatColor.RESET + ChatColor.RED + " L'abus d'alcool est dangereux pour la santé ! De plus, certains effets de lumière peuvent porter atteinte aux personnes épileptiques !");
 
         this.noise.start();
 
@@ -165,8 +164,8 @@ public class Arena extends Game<GamePlayer>
 			}
 		}
 
-		Bukkit.broadcastMessage(Messages.tooLateAlcool.toString().replace("${PLAYER}", player.getName()));
-		Bukkit.getServer().getPluginManager().callEvent(new PlayerItemConsumeEvent(player, bottle));
+		Bukkit.broadcastMessage(SamaGamesAPI.get().getGameManager().getCoherenceMachine().getGameTag() + " " + ChatColor.AQUA + player.getName() + ChatColor.YELLOW + " ne peut plus se retenir et boit sa bouteille.");
+        Bukkit.getServer().getPluginManager().callEvent(new PlayerItemConsumeEvent(player, bottle));
 	}
 	
 	public void noMoreBottle(Player player)
