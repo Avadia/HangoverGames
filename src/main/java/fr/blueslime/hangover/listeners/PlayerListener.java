@@ -99,9 +99,9 @@ public class PlayerListener implements Listener
 					int diff = 0;
 
 					if (event.getPlayer().getItemInHand().getAmount() > 1)
-						diff = event.getPlayer().getItemInHand().getAmount() - 1;
+						diff = event.getPlayer().getInventory().getItem(0).getAmount() - 1;
 
-					event.getPlayer().getInventory().setItemInHand(bottle);
+					event.getPlayer().getInventory().setItem(0, bottle);
 
                     if (diff > 0)
                     {
@@ -236,7 +236,7 @@ public class PlayerListener implements Listener
 			eff += value * value;
             arena.getEffectLevel().put(event.getPlayer().getUniqueId(), eff);
             alcool.applyEffects(event.getPlayer());
-            event.getPlayer().getInventory().setItemInHand(arena.getEmptyBottle());
+            event.getPlayer().getInventory().setItem(0, arena.getEmptyBottle());
             event.setCancelled(true);
 			
 			if (alcool.getValue() < 0)
@@ -375,8 +375,8 @@ public class PlayerListener implements Listener
 
                 Bukkit.getScheduler().runTaskLater(HangoverGames.getInstance(), () ->
                 {
-                    damager.getInventory().addItem(damagedBottleFinal);
-                    damaged.getInventory().addItem(damagerBottleFinal);
+                    damager.getInventory().setItem(0, damagedBottleFinal);
+                    damaged.getInventory().setItem(0, damagerBottleFinal);
 
                     if (damagerBottleFinal.getType().equals(Material.POTION) && AlcoolRandom.getAlcoolByName(damagerBottleFinal.getItemMeta().getDisplayName()).equals(Alcool.WHISKY))
                     {

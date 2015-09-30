@@ -25,6 +25,6 @@ public enum Messages
     @Override
     public String toString()
     {
-        return (this.tag ? SamaGamesAPI.get().getGameManager().getCoherenceMachine().getNameShortcut() + " " : "") + this.message;
+        return (this.tag ? SamaGamesAPI.get().getGameManager().getCoherenceMachine().getGameTag() + " " : "") + this.message;
     }
 }
