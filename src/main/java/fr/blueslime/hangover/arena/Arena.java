@@ -211,6 +211,10 @@ public class Arena extends Game<GamePlayer>
         Player last = null;
         int i = 0;
 
+        int scoreFirst = 0;
+        int scoreSecond = 0;
+        int scoreThird = 0;
+
         for (UUID uuid : top.keySet())
         {
             Player p = Bukkit.getPlayer(uuid);
@@ -221,17 +225,23 @@ public class Arena extends Game<GamePlayer>
             {
                 this.addCoins(p, 50, "1er");
                 this.addStars(p, 1, "1er");
+
                 first = p;
+                scoreFirst = this.scores.get(uuid);
             }
             else if (i == 2)
             {
                 this.addCoins(p, 30, "2eme");
+
                 second = p;
+                scoreSecond = this.scores.get(uuid);
             }
             else if (i == 3)
             {
                 this.addCoins(p, 10, "3eme");
+
                 third = p;
+                scoreThird = this.scores.get(uuid);
             }
             else if (i == top.size())
             {
@@ -240,7 +250,7 @@ public class Arena extends Game<GamePlayer>
         }
 
         PlayerLeaderboardWinTemplate template = SamaGamesAPI.get().getGameManager().getCoherenceMachine().getTemplateManager().getPlayerLeaderboardWinTemplate();
-        template.execute(first, second, third, null, this.scores.get(first.getUniqueId()), this.scores.get(second.getUniqueId()), this.scores.get(third.getUniqueId()));
+        template.execute(first, second, third, null, scoreFirst, scoreSecond, scoreThird);
 
         if (last != null)
             Bukkit.broadcastMessage(ChatColor.GOLD + "Heureusement que " + ChatColor.AQUA + last.getName() + ChatColor.GOLD + " n'a pas trop bû et les ramènera en voiture !");
