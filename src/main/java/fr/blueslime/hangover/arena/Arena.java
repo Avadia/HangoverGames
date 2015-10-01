@@ -1,6 +1,7 @@
 package fr.blueslime.hangover.arena;
 
 import fr.blueslime.hangover.HangoverGames;
+import fr.blueslime.hangover.Messages;
 import fr.blueslime.hangover.tasks.DrinkTimer;
 import fr.blueslime.hangover.tasks.LolNoise;
 import net.samagames.api.SamaGamesAPI;
@@ -76,7 +77,7 @@ public class Arena extends Game<GamePlayer>
         {
             Player player = gamePlayer.getPlayerIfOnline();
 
-            ActionBarAPI.sendPermanentMessage(player, ChatColor.RED + "L'abus d'alcool est dangereux pour la santé !");
+            ActionBarAPI.sendPermanentMessage(player, Messages.actionBarWarning.toString());
 
             this.setupPlayer(player);
             player.getInventory().addItem(this.getEmptyBottle());
@@ -113,7 +114,7 @@ public class Arena extends Game<GamePlayer>
             }
         }, 0L, 20L);
 
-        Bukkit.broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "Attention !" + ChatColor.RESET + ChatColor.RED + " L'abus d'alcool est dangereux pour la santé ! De plus, certains effets de lumière peuvent porter atteinte aux personnes épileptiques !");
+        Bukkit.broadcastMessage(Messages.alcoolWarning.toString());
 
         this.noise.start();
 
@@ -162,7 +163,7 @@ public class Arena extends Game<GamePlayer>
 			}
 		}
 
-		Bukkit.broadcastMessage(SamaGamesAPI.get().getGameManager().getCoherenceMachine().getGameTag() + " " + ChatColor.AQUA + player.getName() + ChatColor.YELLOW + " ne peut plus se retenir et boit sa bouteille.");
+		Bukkit.broadcastMessage(Messages.tooLateAlcool.toString().replace("${PLAYER}", player.getName()));
         Bukkit.getServer().getPluginManager().callEvent(new PlayerItemConsumeEvent(player, bottle));
 	}
 	
@@ -378,7 +379,7 @@ public class Arena extends Game<GamePlayer>
         data.setDisplayName(ChatColor.GOLD + "Bouteille (encore) vide");
 
         ArrayList<String> lore = new ArrayList<>();
-        lore.add(ChatColor.GOLD+"Remplissez cette bouteille et buvez là vite !");
+        lore.add(ChatColor.GOLD + "Remplissez cette bouteille et buvez là vite !");
 
         data.setLore(lore);
         bottle.setItemMeta(data);
