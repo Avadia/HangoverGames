@@ -303,6 +303,14 @@ public class PlayerListener implements Listener
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event)
     {
+        Arena arena = HangoverGames.getInstance().getArena();
+
+        if (!arena.isGameStarted())
+        {
+            event.setCancelled(true);
+            return;
+        }
+
 		if (event.getDamager() != null)
         {
             Entity damagedEntity = event.getEntity();
@@ -310,7 +318,6 @@ public class PlayerListener implements Listener
 
             if (damagerEntity instanceof Player && damagedEntity instanceof Player)
             {
-                Arena arena = HangoverGames.getInstance().getArena();
                 Player damaged = (Player) damagedEntity;
                 Player damager = (Player) damagerEntity;
                 Date now = new Date();

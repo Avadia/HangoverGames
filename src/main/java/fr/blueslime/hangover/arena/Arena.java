@@ -76,6 +76,8 @@ public class Arena extends Game<GamePlayer>
         {
             Player player = gamePlayer.getPlayerIfOnline();
 
+            ActionBarAPI.sendPermanentMessage(player, ChatColor.RED + "L'abus d'alcool est dangereux pour la santé !");
+
             this.setupPlayer(player);
             player.getInventory().addItem(this.getEmptyBottle());
             player.teleport(this.spawn);
@@ -106,10 +108,6 @@ public class Arena extends Game<GamePlayer>
                 int secs = remainder;
 
                 String secsSTR = (secs < 10) ? "0" + secs : secs + "";
-
-                if(secs == 15 || secs == 30 || secs == 45 || secs == 59)
-                    for(Player player : Bukkit.getOnlinePlayers())
-                        ActionBarAPI.sendPermanentMessage(player, ChatColor.RED + "" + ChatColor.UNDERLINE + "L'abus d'alcool est dangereux pour la santé !");
 
                 return mins + ":" + secsSTR;
             }
