@@ -218,8 +218,12 @@ public class Arena extends Game<GamePlayer>
         for (UUID uuid : top.keySet())
         {
             Player p = Bukkit.getPlayer(uuid);
+
             if (p == null) continue;
+
             i++;
+
+            Bukkit.broadcastMessage(i + " -> " + uuid.toString());
 
             if (i == 1)
             {
