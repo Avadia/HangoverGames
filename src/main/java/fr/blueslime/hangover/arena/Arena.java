@@ -223,8 +223,6 @@ public class Arena extends Game<GamePlayer>
 
             i++;
 
-            Bukkit.broadcastMessage(i + " -> " + uuid.toString());
-
             if (i == 1)
             {
                 this.addCoins(p, 50, "1er");
