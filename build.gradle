@@ -36,7 +36,7 @@ sonarRunner {
 }
 
 dependencies {
-    compile(group: 'net.samagames', name: 'SamaGamesAPI', version: '1.0.0-SNAPSHOT', changing: true) {
+    compile(group: 'net.samagames', name: 'SamaGamesAPI', version: '1.0.0', changing: true) {
         transitive = false
     }
 
