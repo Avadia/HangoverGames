@@ -3,6 +3,7 @@ package fr.blueslime.hangover.arena;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import fr.blueslime.hangover.HangoverGames;
 import net.samagames.api.SamaGamesAPI;
 import net.samagames.tools.LocationUtils;
 import org.bukkit.Bukkit;
@@ -15,7 +16,14 @@ import java.util.ArrayList;
 
 public class ArenaManager
 {
-	public Arena loadArena()
+    private final HangoverGames plugin;
+
+    public ArenaManager(HangoverGames plugin)
+    {
+        this.plugin = plugin;
+    }
+
+    public Arena loadArena()
     {
         JsonObject jsonArena = SamaGamesAPI.get().getGameManager().getGameProperties().getConfigs();
 
@@ -25,6 +33,6 @@ public class ArenaManager
         for(int i = 0; i < jsonCauldrons.size(); i++)
             cauldrons.add(LocationUtils.str2loc(jsonCauldrons.get(i).getAsString()));
 
-        return new Arena(LocationUtils.str2loc(jsonArena.get("spawn").getAsString()), cauldrons);
-	}
+        return new Arena(this.plugin, LocationUtils.str2loc(jsonArena.get("spawn").getAsString()), cauldrons);
+    }
 }

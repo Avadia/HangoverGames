@@ -10,10 +10,7 @@ import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Collectors;
-
-
 
 public enum Alcool
 {
@@ -101,11 +98,11 @@ public enum Alcool
             }
     );
 	
-    private String name;
-    private int value;
-    private String[] lore;
-    private int chance;
-    private PotionEffect[] effects;
+    private final String name;
+    private final int value;
+    private final String[] lore;
+    private final int chance;
+    private final PotionEffect[] effects;
 
     Alcool(String name, int value, int chance, String[] lore, PotionEffect[] effects)
     {
@@ -127,7 +124,7 @@ public enum Alcool
         ItemStack bottle = new ItemStack(Material.POTION, 1);
 
         ArrayList<String> lore = new ArrayList<>();
-        lore.addAll(this.getLore().stream().collect(Collectors.toList()));
+        lore.addAll(Arrays.asList(this.lore).stream().collect(Collectors.toList()));
         lore.add("");
 
         if (this.getValue() < 0)
@@ -160,9 +157,5 @@ public enum Alcool
 
     public int getChance() {
     	return this.chance;
-    }
-    
-    public List<String> getLore() {
-    	return Arrays.asList(this.lore);
     }
 }

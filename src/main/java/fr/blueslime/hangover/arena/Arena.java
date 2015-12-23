@@ -10,6 +10,7 @@ import net.samagames.api.games.GamePlayer;
 import net.samagames.api.games.themachine.messages.templates.PlayerLeaderboardWinTemplate;
 import net.samagames.tools.ColorUtils;
 import net.samagames.tools.GameUtils;
+import net.samagames.tools.InventoryUtils;
 import net.samagames.tools.PlayerUtils;
 import net.samagames.tools.chat.ActionBarAPI;
 import org.bukkit.*;
@@ -31,23 +32,25 @@ import java.util.*;
 
 public class Arena extends Game<GamePlayer>
 {
-    private ArrayList<Location> cauldrons;
-    private HashMap<UUID, Integer> scores;
-    private HashMap<UUID, Integer> effectLevel;
-    private HashMap<UUID, Date> damagedCooldown;
-    private HashMap<UUID, Date> doubleLock;
-    private HashMap<UUID, BukkitTask> bottleTasks;
-    private Location spawn;
-    private LolNoise noise;
-    private Integer nocive;
-    private Scoreboard scoreboard;
-    private Objective objective;
-	private BukkitTask gameTime;
+    private final HangoverGames plugin;
+    private final List<Location> cauldrons;
+    private final Map<UUID, Integer> scores;
+    private final Map<UUID, Integer> effectLevel;
+    private final Map<UUID, Date> damagedCooldown;
+    private final Map<UUID, Date> doubleLock;
+    private final Map<UUID, BukkitTask> bottleTasks;
+    private final Location spawn;
+    private final LolNoise noise;
+    private final Scoreboard scoreboard;
+    private final Objective objective;
+    private BukkitTask gameTime;
+    private int nocive;
 
-    public Arena(Location spawn, ArrayList<Location> cauldrons)
+    public Arena(HangoverGames plugin, Location spawn, ArrayList<Location> cauldrons)
     {
         super("arcade", "HangoverGames", "Boissons illimitées pour tous !", GamePlayer.class);
 
+        this.plugin = plugin;
         this.scores = new HashMap<>();
         this.effectLevel = new HashMap<>();
         this.damagedCooldown = new HashMap<>();
@@ -58,7 +61,7 @@ public class Arena extends Game<GamePlayer>
         this.spawn = spawn;
         this.nocive = 0;
 
-        this.scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+        this.scoreboard = plugin.getServer().getScoreboardManager().getNewScoreboard();
 
         this.objective = this.scoreboard.registerNewObjective("hangoverbar", ChatColor.GREEN + "" + ChatColor.BOLD + "HangoverGames" + ChatColor.WHITE + " | " + ChatColor.AQUA + "00:00");
         this.objective.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "HangoverGames" + ChatColor.WHITE + " | " + ChatColor.AQUA + "00:00");
@@ -79,7 +82,8 @@ public class Arena extends Game<GamePlayer>
 
             ActionBarAPI.sendPermanentMessage(player, Messages.actionBarWarning.toString());
 
-            this.setupPlayer(player);
+            InventoryUtils.cleanPlayer(player);
+
             player.getInventory().addItem(this.getEmptyBottle());
             player.teleport(this.spawn);
             player.setScoreboard(this.scoreboard);
@@ -91,7 +95,7 @@ public class Arena extends Game<GamePlayer>
             this.increaseStat(player.getUniqueId(), "played_games", 1);
         }
 
-        this.gameTime = Bukkit.getScheduler().runTaskTimerAsynchronously(HangoverGames.getInstance(), new Runnable()
+        this.gameTime = this.plugin.getServer().getScheduler().runTaskTimerAsynchronously(this.plugin, new Runnable()
         {
             private int time = 0;
 
@@ -114,7 +118,7 @@ public class Arena extends Game<GamePlayer>
             }
         }, 0L, 20L);
 
-        Bukkit.broadcastMessage(Messages.alcoolWarning.toString());
+        this.plugin.getServer().broadcastMessage(Messages.alcoolWarning.toString());
 
         this.noise.start();
 
@@ -138,73 +142,63 @@ public class Arena extends Game<GamePlayer>
     {
         super.handleLogin(player);
 
+        InventoryUtils.cleanPlayer(player);
+
+        player.setGameMode(GameMode.ADVENTURE);
         player.teleport(this.spawn);
-        this.setupPlayer(player);
         player.getInventory().setItem(8, this.coherenceMachine.getLeaveItem());
 
         this.gameManager.refreshArena();
     }
 
-	public void forceDrink(Player player)
+    public void forceDrink(Player player)
     {
-		if (!this.isGameStarted())
-			return;
-		
-		ItemStack bottle = null;
+        if (!this.isGameStarted())
+            return;
 
-		for (ItemStack stack : player.getInventory().getContents())
+        ItemStack bottle = null;
+
+        for (ItemStack stack : player.getInventory().getContents())
         {
-			if (stack.getType().equals(Material.GLASS_BOTTLE)) return;
+            if (stack.getType().equals(Material.GLASS_BOTTLE))
+                return;
 
-			if (stack.getType().equals(Material.POTION))
+            if (stack.getType().equals(Material.POTION))
             {
                 bottle = stack;
-				break;
-			}
-		}
+                break;
+            }
+        }
 
-		Bukkit.broadcastMessage(Messages.tooLateAlcool.toString().replace("${PLAYER}", player.getName()));
+        Bukkit.broadcastMessage(Messages.tooLateAlcool.toString().replace("${PLAYER}", player.getName()));
         Bukkit.getServer().getPluginManager().callEvent(new PlayerItemConsumeEvent(player, bottle));
-	}
-	
-	public void noMoreBottle(Player player)
+    }
+
+    public void noMoreBottle(Player player)
     {
-		BukkitTask task = this.bottleTasks.get(player.getUniqueId());
+        BukkitTask task = this.bottleTasks.get(player.getUniqueId());
 
-		if (task != null)
-			task.cancel();
+        if (task != null)
+            task.cancel();
 
-		this.bottleTasks.remove(player.getUniqueId());
+        this.bottleTasks.remove(player.getUniqueId());
         player.setLevel(0);
-	}
-	
-	public void newBottle(Player player)
-    {
-		this.noMoreBottle(player);
-		this.bottleTasks.put(player.getUniqueId(), new DrinkTimer(this, player).runTaskTimer(HangoverGames.getInstance(), 0L, 20L));
-	}
-	
-	public void setupPlayer(Player p)
-    {
-		p.setGameMode(GameMode.ADVENTURE);
-		p.setMaxHealth(20.0);
-		p.setHealthScale(20);
-		p.setHealth(20.0);
-		p.setSaturation(20);
-		p.getInventory().clear();
+    }
 
-		for (PotionEffect ef : p.getActivePotionEffects())
-			p.removePotionEffect(ef.getType());
-	}
+    public void newBottle(Player player)
+    {
+        this.noMoreBottle(player);
+        this.bottleTasks.put(player.getUniqueId(), new DrinkTimer(this, player).runTaskTimer(this.plugin, 0L, 20L));
+    }
 
-	public void win(Player player)
+    public void win(Player player)
     {
         this.gameTime.cancel();
         this.increaseStat(player.getUniqueId(), "wins", 1);
 
-        this.bottleTasks.values().forEach(org.bukkit.scheduler.BukkitTask::cancel);
+        this.bottleTasks.values().forEach(BukkitTask::cancel);
 
-        LinkedHashMap<UUID, Integer> top = this.sortHashMapByValues(new HashMap<>(this.scores));
+        LinkedHashMap<UUID, Integer> top = sortHashMapByValues(new HashMap<>(this.scores));
         Player first = null;
         Player second = null;
         Player third = null;
@@ -257,73 +251,33 @@ public class Arena extends Game<GamePlayer>
         if (last != null)
             Bukkit.broadcastMessage(ChatColor.GOLD + "Heureusement que " + ChatColor.AQUA + last.getName() + ChatColor.GOLD + " n'a pas trop bû et les ramènera en voiture !");
 
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(HangoverGames.getInstance(), new Runnable()
-        {
-            int number = (int) (10 * 1.5);
-            int count = 0;
-
-            public void run()
-            {
-                if (this.count >= this.number || player.getPlayer() == null)
-                    return;
-
-                Firework fw = (Firework) player.getPlayer().getWorld().spawnEntity(player.getPlayer().getLocation(), EntityType.FIREWORK);
-                FireworkMeta fwm = fw.getFireworkMeta();
-
-                Random r = new Random();
-
-                int rt = r.nextInt(4) + 1;
-                Type type = Type.BALL;
-                if (rt == 1) type = Type.BALL;
-                if (rt == 2) type = Type.BALL_LARGE;
-                if (rt == 3) type = Type.BURST;
-                if (rt == 4) type = Type.CREEPER;
-                if (rt == 5) type = Type.STAR;
-
-                int r1i = r.nextInt(17) + 1;
-                int r2i = r.nextInt(17) + 1;
-                Color c1 = ColorUtils.getColor(r1i);
-                Color c2 = ColorUtils.getColor(r2i);
-
-                FireworkEffect effect = FireworkEffect.builder().flicker(r.nextBoolean()).withColor(c1).withFade(c2).with(type).trail(r.nextBoolean()).build();
-
-                fwm.addEffect(effect);
-
-                int rp = r.nextInt(2) + 1;
-                fwm.setPower(rp);
-
-                fw.setFireworkMeta(fwm);
-
-                this.count++;
-            }
-        }, 5L, 5L);
+        this.effectsOnWinner(player);
 
         this.handleGameEnd();
     }
 
-	public void resetCauldrons()
+    public void resetCauldrons()
     {
-		for (Location location : this.cauldrons)
-            location.getBlock().setType(Material.AIR);
-	}
-	
-	public void fillRandom()
-    {
-		Random random = new Random();
-		Location location = cauldrons.get(random.nextInt(cauldrons.size()));
+        this.cauldrons.forEach(location -> location.getBlock().setType(Material.AIR));
+    }
 
-		if (location.getBlock().getType().equals(Material.CAULDRON))
+    public void fillRandom()
+    {
+        Random random = new Random();
+        Location location = this.cauldrons.get(random.nextInt(this.cauldrons.size()));
+
+        if (location.getBlock().getType().equals(Material.CAULDRON))
         {
-			this.fillRandom();
-			return;
-		}
+            this.fillRandom();
+            return;
+        }
 
         location.getBlock().setType(Material.CAULDRON);
         location.getBlock().setData((byte) 1);
         GameUtils.broadcastSound(Sound.ANVIL_LAND, location);
     }
 
-    public static LinkedHashMap<UUID, Integer> sortHashMapByValues(HashMap<UUID, Integer> scores)
+    public static LinkedHashMap<UUID, Integer> sortHashMapByValues(Map<UUID, Integer> scores)
     {
         List<UUID> mapKeys = new ArrayList<>(scores.keySet());
         List<Integer> mapValues = new ArrayList<>(scores.values());
@@ -363,22 +317,22 @@ public class Arena extends Game<GamePlayer>
         this.nocive = nocive;
     }
 
-    public HashMap<UUID, Date> getDamagedCooldown()
+    public Map<UUID, Date> getDamagedCooldown()
     {
         return this.damagedCooldown;
     }
 
-    public HashMap<UUID, Date> getDoubleLock()
+    public Map<UUID, Date> getDoubleLock()
     {
         return this.doubleLock;
     }
 
-    public HashMap<UUID, Integer> getEffectLevel()
+    public Map<UUID, Integer> getEffectLevel()
     {
         return this.effectLevel;
     }
 
-    public HashMap<UUID, Integer> getScores()
+    public Map<UUID, Integer> getScores()
     {
         return this.scores;
     }
