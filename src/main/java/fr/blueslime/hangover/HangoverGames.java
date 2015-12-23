@@ -9,25 +9,16 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class HangoverGames extends JavaPlugin
 {
-	private static HangoverGames instance;
-    private Arena arena;
+    private static HangoverGames instance;
 
     @Override
-	public void onEnable()
+    public void onEnable()
     {
-		instance = this;
+        instance = this;
 
-        this.arena = new ArenaManager().loadArena();
-
-		this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
-        Bukkit.getPluginManager().registerEvents(new PlayerListener(), this);
-
-        SamaGamesAPI.get().getGameManager().registerGame(this.arena);
-    }
-
-    public Arena getArena()
-    {
-        return this.arena;
+        Arena arena = new ArenaManager(this).loadArena();
+        Bukkit.getPluginManager().registerEvents(new PlayerListener(this, arena), this);
+        SamaGamesAPI.get().getGameManager().registerGame(arena);
     }
 
     public static HangoverGames getInstance()

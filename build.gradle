@@ -1,12 +1,15 @@
 apply plugin: 'java'
 apply plugin: 'idea'
+apply plugin: 'sonar-runner'
 
-group = 'fr.blueslime'
+group = 'net.samagames'
 version = '1.0.0'
 archivesBaseName = 'HangoverGames'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
+
+compileJava.options.encoding = 'UTF-8'
 
 repositories {
     mavenCentral()
@@ -22,8 +25,18 @@ repositories {
     }
 }
 
+sonarRunner {
+    sonarProperties {
+        property "sonar.projectKey", group + "." + archivesBaseName
+        property "sonar.projectName", archivesBaseName
+
+        property "sonar.login", sonaruser
+        property "sonar.password", sonarpass
+    }
+}
+
 dependencies {
-    compile(group: 'net.samagames', name: 'SamaGamesAPI', version: '1.0.0-SNAPSHOT', changing: true) {
+    compile(group: 'net.samagames', name: 'SamaGamesAPI', version: '1.0.0', changing: true) {
         transitive = false
     }
 
