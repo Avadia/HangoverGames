@@ -34,7 +34,7 @@ public class DrinkTimer extends BukkitRunnable
         this.player.setLevel(this.time);
 
         if (this.time <= 5)
-            this.player.playSound(this.player.getLocation(), Sound.NOTE_PLING, 1, 1);
+            this.player.playSound(this.player.getLocation(), Sound.BLOCK_NOTE_PLING, 1, 1);
 
         this.time--;
     }

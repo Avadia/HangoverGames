@@ -197,7 +197,7 @@ public class PlayerListener implements Listener
 
         if (item.getType().equals(Material.POTION) || item.getType().equals(Material.GLASS_BOTTLE))
         {
-            this.arena.increaseStat(event.getPlayer().getUniqueId(), "drinks", 1);
+            SamaGamesAPI.get().getStatsManager().getPlayerStats(event.getPlayer().getUniqueId()).getHangoverStatistics().incrByDrinks(1);
             Alcool alcool = AlcoolRandom.getAlcoolByName(item.getItemMeta().getDisplayName());
 
             if (alcool == null)
@@ -240,17 +240,17 @@ public class PlayerListener implements Listener
             if (alcool.getValue() < 0)
             {
                 Bukkit.broadcastMessage(Messages.pointsLost.toString().replace("${PLAYER}", event.getPlayer().getName()).replace("${NUMBER}", "" + alcool.getValue() * -1).replace("${ALCOOL}", alcool.getName()));
-                GameUtils.broadcastSound(Sound.HORSE_ZOMBIE_DEATH, event.getPlayer().getLocation());
+                GameUtils.broadcastSound(Sound.ENTITY_ZOMBIE_HORSE_DEATH, event.getPlayer().getLocation());
             }
             else
             {
                 Bukkit.broadcastMessage(Messages.pointsGained.toString().replace("${PLAYER}", event.getPlayer().getName()).replace("${NUMBER}", "" + alcool.getValue()).replace("${ALCOOL}", alcool.getName()));
-                GameUtils.broadcastSound(Sound.BURP, event.getPlayer().getLocation());
+                GameUtils.broadcastSound(Sound.ENTITY_PLAYER_BURP, event.getPlayer().getLocation());
             }
 
             if (alcool.equals(Alcool.WHISKY))
             {
-                GameUtils.broadcastSound(Sound.WITHER_DEATH, event.getPlayer().getLocation());
+                GameUtils.broadcastSound(Sound.ENTITY_WITHER_DEATH, event.getPlayer().getLocation());
             }
 
             this.arena.noMoreBottle(event.getPlayer());

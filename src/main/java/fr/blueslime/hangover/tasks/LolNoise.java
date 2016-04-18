@@ -29,12 +29,12 @@ public class LolNoise extends Thread
 
         Random eff = new Random();
         ArrayList<Sound> effect = new ArrayList<>();
-        effect.add(Sound.HORSE_ANGRY);
-        effect.add(Sound.ZOMBIE_IDLE);
-        effect.add(Sound.ZOMBIE_WALK);
-        effect.add(Sound.CREEPER_HISS);
-        effect.add(Sound.SKELETON_IDLE);
-        effect.add(Sound.GHAST_SCREAM);
+        effect.add(Sound.ENTITY_HORSE_ANGRY);
+        effect.add(Sound.ENTITY_ZOMBIE_AMBIENT);
+        effect.add(Sound.ENTITY_ZOMBIE_STEP);
+        effect.add(Sound.ENTITY_CREEPER_HURT);
+        effect.add(Sound.ENTITY_SKELETON_AMBIENT);
+        effect.add(Sound.ENTITY_GHAST_SCREAM);
 
         this.effect = effect.get(eff.nextInt(effect.size()));
     }

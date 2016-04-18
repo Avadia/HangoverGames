@@ -8,21 +8,15 @@ import net.samagames.api.SamaGamesAPI;
 import net.samagames.api.games.Game;
 import net.samagames.api.games.GamePlayer;
 import net.samagames.api.games.themachine.messages.templates.PlayerLeaderboardWinTemplate;
-import net.samagames.tools.ColorUtils;
 import net.samagames.tools.GameUtils;
 import net.samagames.tools.InventoryUtils;
 import net.samagames.tools.PlayerUtils;
 import net.samagames.tools.chat.ActionBarAPI;
 import org.bukkit.*;
-import org.bukkit.FireworkEffect.Type;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
@@ -92,7 +86,7 @@ public class Arena extends Game<GamePlayer>
             this.objective.getScore(PlayerUtils.getColoredFormattedPlayerName(player)).setScore(0);
             this.scores.put(player.getUniqueId(), 0);
 
-            this.increaseStat(player.getUniqueId(), "played_games", 1);
+            SamaGamesAPI.get().getStatsManager().getPlayerStats(player.getUniqueId()).getHangoverStatistics().incrByPlayedGames(1);
         }
 
         this.gameTime = this.plugin.getServer().getScheduler().runTaskTimerAsynchronously(this.plugin, new Runnable()
@@ -194,7 +188,7 @@ public class Arena extends Game<GamePlayer>
     public void win(Player player)
     {
         this.gameTime.cancel();
-        this.increaseStat(player.getUniqueId(), "wins", 1);
+        SamaGamesAPI.get().getStatsManager().getPlayerStats(player.getUniqueId()).getHangoverStatistics().incrByWins(1);
 
         this.bottleTasks.values().forEach(BukkitTask::cancel);
 
@@ -274,7 +268,7 @@ public class Arena extends Game<GamePlayer>
 
         location.getBlock().setType(Material.CAULDRON);
         location.getBlock().setData((byte) 1);
-        GameUtils.broadcastSound(Sound.ANVIL_LAND, location);
+        GameUtils.broadcastSound(Sound.BLOCK_ANVIL_LAND, location);
     }
 
     public static LinkedHashMap<UUID, Integer> sortHashMapByValues(Map<UUID, Integer> scores)
