@@ -197,7 +197,7 @@ public class PlayerListener implements Listener
 
         if (item.getType().equals(Material.POTION) || item.getType().equals(Material.GLASS_BOTTLE))
         {
-            SamaGamesAPI.get().getStatsManager().getPlayerStats(event.getPlayer().getUniqueId()).getHangoverStatistics().incrByDrinks(1);
+            //TODO: SamaGamesAPI.get().getStatsManager().getPlayerStats(event.getPlayer().getUniqueId()).getHangoverStatistics().incrByDrinks(1);
             Alcool alcool = AlcoolRandom.getAlcoolByName(item.getItemMeta().getDisplayName());
 
             if (alcool == null)

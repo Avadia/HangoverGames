@@ -86,7 +86,7 @@ public class Arena extends Game<GamePlayer>
             this.objective.getScore(PlayerUtils.getColoredFormattedPlayerName(player)).setScore(0);
             this.scores.put(player.getUniqueId(), 0);
 
-            SamaGamesAPI.get().getStatsManager().getPlayerStats(player.getUniqueId()).getHangoverStatistics().incrByPlayedGames(1);
+            //TODO: SamaGamesAPI.get().getStatsManager().getPlayerStats(player.getUniqueId()).getHangoverStatistics().incrByPlayedGames(1);
         }
 
         this.gameTime = this.plugin.getServer().getScheduler().runTaskTimerAsynchronously(this.plugin, new Runnable()
@@ -188,7 +188,7 @@ public class Arena extends Game<GamePlayer>
     public void win(Player player)
     {
         this.gameTime.cancel();
-        SamaGamesAPI.get().getStatsManager().getPlayerStats(player.getUniqueId()).getHangoverStatistics().incrByWins(1);
+        //TODO: SamaGamesAPI.get().getStatsManager().getPlayerStats(player.getUniqueId()).getHangoverStatistics().incrByWins(1);
 
         this.bottleTasks.values().forEach(BukkitTask::cancel);
 
