@@ -19,6 +19,7 @@ public class HangoverGames extends JavaPlugin
         Arena arena = new ArenaManager(this).loadArena();
         Bukkit.getPluginManager().registerEvents(new PlayerListener(this, arena), this);
         SamaGamesAPI.get().getGameManager().registerGame(arena);
+        SamaGamesAPI.get().getGameManager().setKeepPlayerCache(true);
     }
 
     public static HangoverGames getInstance()
