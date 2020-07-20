@@ -1,5 +1,5 @@
 name: HangoverGames
 main: fr.blueslime.hangover.HangoverGames
-version: 1.0
+version: 1.0.0
 
 depend: [SamaGamesAPI]

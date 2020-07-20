@@ -25,21 +25,17 @@ import java.util.UUID;
  * You should have received a copy of the GNU General Public License
  * along with HangoverGames.  If not, see <http://www.gnu.org/licenses/>.
  */
-public class LolNoise extends Thread
-{
-    private Arena parent;
+public class LolNoise extends Thread {
+    private final Arena parent;
     private Sound effect = null;
     private int left = 0;
-    private boolean cont = true;
 
-    public LolNoise(Arena parent)
-    {
+    public LolNoise(Arena parent) {
         this.parent = parent;
         this.randomLeft();
     }
 
-    public void randomLeft()
-    {
+    public void randomLeft() {
         Random random = new Random();
         this.left = random.nextInt(30);
 
@@ -55,24 +51,20 @@ public class LolNoise extends Thread
         this.effect = effect.get(eff.nextInt(effect.size()));
     }
 
-    public void run()
-    {
-        while (this.cont)
-        {
-            try
-            {
+    @SuppressWarnings("BusyWait")
+    public void run() {
+        while (true) {
+            try {
                 sleep(1000);
                 this.left--;
 
                 if (!this.parent.isGameStarted())
                     return;
 
-                if (this.left == 0)
-                {
+                if (this.left == 0) {
                     this.randomLeft();
 
-                    for (UUID uuid : this.parent.getEffectLevel().keySet())
-                    {
+                    for (UUID uuid : this.parent.getEffectLevel().keySet()) {
                         Player player = Bukkit.getPlayer(uuid);
 
                         if (player == null)
@@ -82,9 +74,7 @@ public class LolNoise extends Thread
                             player.playSound(player.getLocation(), this.effect, 1, 1);
                     }
                 }
-            }
-            catch (InterruptedException e)
-            {
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }

@@ -19,8 +19,7 @@ import org.bukkit.ChatColor;
  * You should have received a copy of the GNU General Public License
  * along with HangoverGames.  If not, see <http://www.gnu.org/licenses/>.
  */
-public enum Messages
-{
+public enum Messages {
     pointsGained(ChatColor.AQUA + "${PLAYER}" + ChatColor.YELLOW + " " + ChatColor.GREEN + "a gagné ${NUMBER} gramme(s)" + ChatColor.YELLOW + " en buvant : ${ALCOOL}.", true),
     pointsLost(ChatColor.AQUA + "${PLAYER}" + ChatColor.YELLOW + " vomit et " + ChatColor.RED + "perd ${NUMBER} gramme(s)" + ChatColor.YELLOW + " en buvant : ${ALCOOL}.", true),
     tooLateAlcool(ChatColor.AQUA + "${PLAYER}" + ChatColor.YELLOW + " ne peut plus se retenir et boit sa bouteille.", true),
@@ -29,18 +28,16 @@ public enum Messages
     alcoolWarning(ChatColor.RED + "" + ChatColor.BOLD + "Attention !" + ChatColor.RESET + ChatColor.RED + " L'abus d'alcool est dangereux pour la santé ! De plus, certains effets de lumière peuvent porter atteinte aux personnes épileptiques !", false),
     actionBarWarning(ChatColor.RED + "L'abus d'alcool est dangereux pour la santé ;)", false);
 
-    private String message;
-    private boolean tag;
+    private final String message;
+    private final boolean tag;
 
-    Messages(String message, boolean tag)
-    {
+    Messages(String message, boolean tag) {
         this.message = message;
         this.tag = tag;
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         return (this.tag ? SamaGamesAPI.get().getGameManager().getCoherenceMachine().getGameTag() + " " : "") + this.message;
     }
 }

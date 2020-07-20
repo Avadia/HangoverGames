@@ -20,22 +20,16 @@ import java.util.Random;
  * You should have received a copy of the GNU General Public License
  * along with HangoverGames.  If not, see <http://www.gnu.org/licenses/>.
  */
-public class AlcoolRandom
-{
-    public static Alcool getRandom()
-    {
+public class AlcoolRandom {
+    public static Alcool getRandom() {
         Random random = new Random();
         int number = random.nextInt(100);
         int current = 0;
 
-        for (Alcool alcool : Alcool.values())
-        {
-            if (current + alcool.getChance() >= number)
-            {
+        for (Alcool alcool : Alcool.values()) {
+            if (current + alcool.getChance() >= number) {
                 return alcool;
-            }
-            else
-            {
+            } else {
                 current += alcool.getChance();
             }
         }
@@ -43,8 +37,7 @@ public class AlcoolRandom
         return Alcool.BEER;
     }
 
-    public static Alcool getAlcoolByName(String alcoolName)
-    {
+    public static Alcool getAlcoolByName(String alcoolName) {
         String[] data = alcoolName.split(ChatColor.WHITE + " \\(");
 
         for (Alcool alcool : Alcool.values())

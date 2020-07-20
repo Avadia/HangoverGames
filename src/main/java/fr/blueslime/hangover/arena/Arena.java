@@ -40,8 +40,7 @@ import java.util.*;
  * You should have received a copy of the GNU General Public License
  * along with HangoverGames.  If not, see <http://www.gnu.org/licenses/>.
  */
-public class Arena extends Game<GamePlayer>
-{
+public class Arena extends Game<GamePlayer> {
     private final HangoverGames plugin;
     private final List<Location> cauldrons;
     private final Map<UUID, Integer> scores;
@@ -56,8 +55,7 @@ public class Arena extends Game<GamePlayer>
     private BukkitTask gameTime;
     private int nocive;
 
-    public Arena(HangoverGames plugin, Location spawn, ArrayList<Location> cauldrons)
-    {
+    public Arena(HangoverGames plugin, Location spawn, ArrayList<Location> cauldrons) {
         super("arcade", "HangoverGames", "Boissons illimitées pour tous !", GamePlayer.class);
 
         this.plugin = plugin;
@@ -78,16 +76,40 @@ public class Arena extends Game<GamePlayer>
         this.objective.setDisplaySlot(DisplaySlot.SIDEBAR);
     }
 
+    @SuppressWarnings("SuspiciousMethodCalls")
+    public static LinkedHashMap<UUID, Integer> sortHashMapByValues(Map<UUID, Integer> scores) {
+        List<UUID> mapKeys = new ArrayList<>(scores.keySet());
+        List<Integer> mapValues = new ArrayList<>(scores.values());
+        mapValues.sort(Collections.reverseOrder());
+        mapKeys.sort(Collections.reverseOrder());
+
+        LinkedHashMap<UUID, Integer> sortedMap = new LinkedHashMap<>();
+
+        for (Object val : mapValues) {
+            for (Object key : mapKeys) {
+                String comp1 = scores.get(key).toString();
+                String comp2 = val.toString();
+
+                if (comp1.equals(comp2)) {
+                    scores.remove(key);
+                    mapKeys.remove(key);
+                    sortedMap.put((UUID) key, (Integer) val);
+                    break;
+                }
+            }
+        }
+
+        return sortedMap;
+    }
+
     @Override
-    public void startGame()
-    {
+    public void startGame() {
         super.startGame();
 
         this.objective.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "HangoverGames" + ChatColor.WHITE + " | " + ChatColor.AQUA + "00:00");
         this.objective.getScore(ChatColor.GOLD + "▪ Objectif : ").setScore(15);
 
-        for (GamePlayer gamePlayer : this.getInGamePlayers().values())
-        {
+        for (GamePlayer gamePlayer : this.getInGamePlayers().values()) {
             Player player = gamePlayer.getPlayerIfOnline();
 
             ActionBarAPI.sendPermanentMessage(player, Messages.actionBarWarning.toString());
@@ -105,22 +127,18 @@ public class Arena extends Game<GamePlayer>
             //TODO: SamaGamesAPI.get().getStatsManager().getPlayerStats(player.getUniqueId()).getHangoverStatistics().incrByPlayedGames(1);
         }
 
-        this.gameTime = this.plugin.getServer().getScheduler().runTaskTimerAsynchronously(this.plugin, new Runnable()
-        {
+        this.gameTime = this.plugin.getServer().getScheduler().runTaskTimerAsynchronously(this.plugin, new Runnable() {
             private int time = 0;
 
             @Override
-            public void run()
-            {
+            public void run() {
                 this.time++;
                 objective.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "HangoverGames" + ChatColor.WHITE + " | " + ChatColor.AQUA + this.formatTime(this.time));
             }
 
-            public String formatTime(int time)
-            {
+            public String formatTime(int time) {
                 int mins = time / 60;
-                int remainder = time - mins * 60;
-                int secs = remainder;
+                int secs = time - mins * 60;
 
                 String secsSTR = (secs < 10) ? "0" + secs : secs + "";
 
@@ -139,8 +157,7 @@ public class Arena extends Game<GamePlayer>
     }
 
     @Override
-    public void handlePostRegistration()
-    {
+    public void handlePostRegistration() {
         super.handlePostRegistration();
 
         this.coherenceMachine.setStartCountdownCatchPhrase("Préparez-vous à boire !");
@@ -148,8 +165,7 @@ public class Arena extends Game<GamePlayer>
     }
 
     @Override
-    public void handleLogin(Player player)
-    {
+    public void handleLogin(Player player) {
         super.handleLogin(player);
 
         InventoryUtils.cleanPlayer(player);
@@ -161,20 +177,17 @@ public class Arena extends Game<GamePlayer>
         this.gameManager.refreshArena();
     }
 
-    public void forceDrink(Player player)
-    {
+    public void forceDrink(Player player) {
         if (!this.isGameStarted())
             return;
 
         ItemStack bottle = null;
 
-        for (ItemStack stack : player.getInventory().getContents())
-        {
+        for (ItemStack stack : player.getInventory().getContents()) {
             if (stack.getType().equals(Material.GLASS_BOTTLE))
                 return;
 
-            if (stack.getType().equals(Material.POTION))
-            {
+            if (stack.getType().equals(Material.POTION)) {
                 bottle = stack;
                 break;
             }
@@ -184,8 +197,7 @@ public class Arena extends Game<GamePlayer>
         Bukkit.getServer().getPluginManager().callEvent(new PlayerItemConsumeEvent(player, bottle));
     }
 
-    public void noMoreBottle(Player player)
-    {
+    public void noMoreBottle(Player player) {
         BukkitTask task = this.bottleTasks.get(player.getUniqueId());
 
         if (task != null)
@@ -195,14 +207,12 @@ public class Arena extends Game<GamePlayer>
         player.setLevel(0);
     }
 
-    public void newBottle(Player player)
-    {
+    public void newBottle(Player player) {
         this.noMoreBottle(player);
         this.bottleTasks.put(player.getUniqueId(), new DrinkTimer(this, player).runTaskTimer(this.plugin, 0L, 20L));
     }
 
-    public void win(Player player)
-    {
+    public void win(Player player) {
         this.gameTime.cancel();
         //TODO: SamaGamesAPI.get().getStatsManager().getPlayerStats(player.getUniqueId()).getHangoverStatistics().incrByWins(1);
 
@@ -219,38 +229,29 @@ public class Arena extends Game<GamePlayer>
         int scoreSecond = 0;
         int scoreThird = 0;
 
-        for (UUID uuid : top.keySet())
-        {
+        for (UUID uuid : top.keySet()) {
             Player p = Bukkit.getPlayer(uuid);
 
             if (p == null) continue;
 
             i++;
 
-            if (i == 1)
-            {
+            if (i == 1) {
                 this.addCoins(p, 50, "1er");
-                this.addStars(p, 1, "1er");
 
                 first = p;
                 scoreFirst = this.scores.get(uuid);
-            }
-            else if (i == 2)
-            {
+            } else if (i == 2) {
                 this.addCoins(p, 30, "2eme");
 
                 second = p;
                 scoreSecond = this.scores.get(uuid);
-            }
-            else if (i == 3)
-            {
+            } else if (i == 3) {
                 this.addCoins(p, 10, "3eme");
 
                 third = p;
                 scoreThird = this.scores.get(uuid);
-            }
-            else if (i == top.size())
-            {
+            } else if (i == top.size()) {
                 last = p;
             }
         }
@@ -266,18 +267,15 @@ public class Arena extends Game<GamePlayer>
         this.handleGameEnd();
     }
 
-    public void resetCauldrons()
-    {
+    public void resetCauldrons() {
         this.cauldrons.forEach(location -> location.getBlock().setType(Material.AIR));
     }
 
-    public void fillRandom()
-    {
+    public void fillRandom() {
         Random random = new Random();
         Location location = this.cauldrons.get(random.nextInt(this.cauldrons.size()));
 
-        if (location.getBlock().getType().equals(Material.CAULDRON))
-        {
+        if (location.getBlock().getType().equals(Material.CAULDRON)) {
             this.fillRandom();
             return;
         }
@@ -287,68 +285,23 @@ public class Arena extends Game<GamePlayer>
         GameUtils.broadcastSound(Sound.BLOCK_ANVIL_LAND, location);
     }
 
-    public static LinkedHashMap<UUID, Integer> sortHashMapByValues(Map<UUID, Integer> scores)
-    {
-        List<UUID> mapKeys = new ArrayList<>(scores.keySet());
-        List<Integer> mapValues = new ArrayList<>(scores.values());
-        Collections.sort(mapValues, Collections.reverseOrder());
-        Collections.sort(mapKeys, Collections.reverseOrder());
-
-        LinkedHashMap<UUID, Integer> sortedMap = new LinkedHashMap<>();
-
-        Iterator valueIt = mapValues.iterator();
-
-        while (valueIt.hasNext())
-        {
-            Object val = valueIt.next();
-            Iterator keyIt = mapKeys.iterator();
-
-            while (keyIt.hasNext())
-            {
-                Object key = keyIt.next();
-                String comp1 = scores.get(key).toString();
-                String comp2 = val.toString();
-
-                if (comp1.equals(comp2))
-                {
-                    scores.remove(key);
-                    mapKeys.remove(key);
-                    sortedMap.put((UUID) key, (Integer) val);
-                    break;
-                }
-            }
-        }
-
-        return sortedMap;
-    }
-
-    public void setNocive(int nocive)
-    {
-        this.nocive = nocive;
-    }
-
-    public Map<UUID, Date> getDamagedCooldown()
-    {
+    public Map<UUID, Date> getDamagedCooldown() {
         return this.damagedCooldown;
     }
 
-    public Map<UUID, Date> getDoubleLock()
-    {
+    public Map<UUID, Date> getDoubleLock() {
         return this.doubleLock;
     }
 
-    public Map<UUID, Integer> getEffectLevel()
-    {
+    public Map<UUID, Integer> getEffectLevel() {
         return this.effectLevel;
     }
 
-    public Map<UUID, Integer> getScores()
-    {
+    public Map<UUID, Integer> getScores() {
         return this.scores;
     }
 
-    public ItemStack getEmptyBottle()
-    {
+    public ItemStack getEmptyBottle() {
         ItemStack bottle = new ItemStack(Material.GLASS_BOTTLE, 1);
         ItemMeta data = bottle.getItemMeta();
 
@@ -363,18 +316,19 @@ public class Arena extends Game<GamePlayer>
         return bottle;
     }
 
-    public Location getSpawn()
-    {
+    public Location getSpawn() {
         return this.spawn;
     }
 
-    public Objective getObjective()
-    {
+    public Objective getObjective() {
         return this.objective;
     }
 
-    public int getNocive()
-    {
+    public int getNocive() {
         return this.nocive;
+    }
+
+    public void setNocive(int nocive) {
+        this.nocive = nocive;
     }
 }

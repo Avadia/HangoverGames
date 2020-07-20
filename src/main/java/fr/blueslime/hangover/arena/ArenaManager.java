@@ -25,23 +25,20 @@ import java.util.ArrayList;
  * You should have received a copy of the GNU General Public License
  * along with HangoverGames.  If not, see <http://www.gnu.org/licenses/>.
  */
-public class ArenaManager
-{
+public class ArenaManager {
     private final HangoverGames plugin;
 
-    public ArenaManager(HangoverGames plugin)
-    {
+    public ArenaManager(HangoverGames plugin) {
         this.plugin = plugin;
     }
 
-    public Arena loadArena()
-    {
-        JsonObject jsonArena = SamaGamesAPI.get().getGameManager().getGameProperties().getConfigs();
+    public Arena loadArena() {
+        JsonObject jsonArena = SamaGamesAPI.get().getGameManager().getGameProperties().getMapProperties();
 
         JsonArray jsonCauldrons = jsonArena.get("cauldrons").getAsJsonArray();
         ArrayList<Location> cauldrons = new ArrayList<>();
 
-        for(int i = 0; i < jsonCauldrons.size(); i++)
+        for (int i = 0; i < jsonCauldrons.size(); i++)
             cauldrons.add(LocationUtils.str2loc(jsonCauldrons.get(i).getAsString()));
 
         return new Arena(this.plugin, LocationUtils.str2loc(jsonArena.get("spawn").getAsString()), cauldrons);

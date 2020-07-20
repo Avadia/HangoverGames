@@ -22,14 +22,12 @@ import org.bukkit.potion.PotionEffectType;
  * You should have received a copy of the GNU General Public License
  * along with HangoverGames.  If not, see <http://www.gnu.org/licenses/>.
  */
-public class SpecialEffect extends PotionEffect
-{
-    private int spacing;
-    private int duration;
-    private int occurences;
+public class SpecialEffect extends PotionEffect {
+    private final int spacing;
+    private final int duration;
+    private final int occurences;
 
-    public SpecialEffect(PotionEffectType type, int singleDuration, int amplifier, int spacing, int occurences)
-    {
+    public SpecialEffect(PotionEffectType type, int singleDuration, int amplifier, int spacing, int occurences) {
         super(type, singleDuration, amplifier);
 
         this.duration = singleDuration;
@@ -38,27 +36,23 @@ public class SpecialEffect extends PotionEffect
     }
 
     @Override
-    public boolean apply(final LivingEntity entity)
-    {
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(HangoverGames.getInstance(), new Runnable()
-        {
+    public boolean apply(final LivingEntity entity) {
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(HangoverGames.getInstance(), new Runnable() {
             private int current = 0;
 
-            public void run()
-            {
+            public void run() {
                 if (this.current > occurences)
                     return;
 
                 _apply(entity);
-				current++;
+                current++;
             }
         }, 0L, (this.duration + this.spacing));
 
         return true;
     }
 
-    public void _apply(LivingEntity entity)
-    {
+    public void _apply(LivingEntity entity) {
         super.apply(entity);
     }
 }

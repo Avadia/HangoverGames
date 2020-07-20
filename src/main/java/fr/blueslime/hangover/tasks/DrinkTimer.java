@@ -22,23 +22,19 @@ import org.bukkit.scheduler.BukkitRunnable;
  * You should have received a copy of the GNU General Public License
  * along with HangoverGames.  If not, see <http://www.gnu.org/licenses/>.
  */
-public class DrinkTimer extends BukkitRunnable
-{
-    private Arena parent;
-    private Player player;
+public class DrinkTimer extends BukkitRunnable {
+    private final Arena parent;
+    private final Player player;
     private Integer time = 20;
 
-    public DrinkTimer(Arena arena, Player player)
-    {
+    public DrinkTimer(Arena arena, Player player) {
         this.parent = arena;
         this.player = player;
     }
 
     @Override
-    public void run()
-    {
-        if (this.time == 0)
-        {
+    public void run() {
+        if (this.time == 0) {
             this.parent.forceDrink(this.player);
             this.cancel();
             return;

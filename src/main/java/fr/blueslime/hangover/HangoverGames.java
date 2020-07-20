@@ -23,23 +23,20 @@ import org.bukkit.plugin.java.JavaPlugin;
  * You should have received a copy of the GNU General Public License
  * along with HangoverGames.  If not, see <http://www.gnu.org/licenses/>.
  */
-public class HangoverGames extends JavaPlugin
-{
+public class HangoverGames extends JavaPlugin {
     private static HangoverGames instance;
 
+    public static HangoverGames getInstance() {
+        return instance;
+    }
+
     @Override
-    public void onEnable()
-    {
+    public void onEnable() {
         instance = this;
 
         Arena arena = new ArenaManager(this).loadArena();
         Bukkit.getPluginManager().registerEvents(new PlayerListener(this, arena), this);
         SamaGamesAPI.get().getGameManager().registerGame(arena);
         SamaGamesAPI.get().getGameManager().setKeepPlayerCache(true);
-    }
-
-    public static HangoverGames getInstance()
-    {
-        return instance;
     }
 }
