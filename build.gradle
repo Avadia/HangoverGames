@@ -1,8 +1,9 @@
 apply plugin: 'java'
 apply plugin: 'idea'
+apply plugin: 'maven'
 
 group = 'net.samagames'
-version = '1.0.0'
+version = '1.0.0-SNAPSHOT'
 archivesBaseName = 'HangoverGames'
 
 sourceCompatibility = 1.8
@@ -16,10 +17,24 @@ repositories {
     maven {
         url = "https://papermc.io/repo/repository/maven-public/"
     }
+    maven {
+        url = "https://nexus.avadia.fr/repository/avadia-minecraft-release/"
+        credentials {
+            username avadiaUser
+            password avadiaPassword
+        }
+    }
+    maven {
+        url = "https://nexus.avadia.fr/repository/avadia-minecraft-snapshot/"
+        credentials {
+            username avadiaUser
+            password avadiaPassword
+        }
+    }
 }
 
 dependencies {
-    compile(group: 'net.samagames', name: 'SamaGamesAPI', version: '5.0.0', changing: true) {
+    compile(group: 'net.samagames', name: 'SamaGamesAPI', version: '5.0.0-SNAPSHOT', changing: true) {
         transitive = false
     }
 
@@ -28,5 +43,18 @@ dependencies {
     }
     compileOnly(group: 'com.destroystokyo.paper', name: 'paper-api', version: '1.12.2-R0.1-SNAPSHOT', changing: true) {
         transitive = false
+    }
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: 'https://nexus.avadia.fr/repository/avadia-minecraft-release/') {
+                authentication(userName: avadiaUser, password: avadiaPassword)
+            }
+            snapshotRepository(url: 'https://nexus.avadia.fr/repository/avadia-minecraft-snapshot/') {
+                authentication(userName: avadiaUser, password: avadiaPassword)
+            }
+        }
     }
 }
