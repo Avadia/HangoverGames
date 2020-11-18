@@ -150,7 +150,30 @@ public class PlayerListener implements Listener {
         if (event.getClickedBlock() == null)
             return;
 
-        Material[] blacklist = new Material[]{Material.NOTE_BLOCK, Material.JUKEBOX, Material.LADDER, Material.TRAP_DOOR, Material.TRAPPED_CHEST, Material.FENCE_GATE, Material.WOOD_DOOR, Material.WOOD_BUTTON, Material.WOODEN_DOOR, Material.LEVER, Material.WORKBENCH, Material.STONE_BUTTON, Material.ITEM_FRAME};
+        Material[] blacklist = new Material[]{
+                Material.NOTE_BLOCK,
+                Material.JUKEBOX,
+                Material.LADDER,
+                Material.TRAP_DOOR,
+                Material.TRAPPED_CHEST,
+                Material.FENCE_GATE,
+                Material.ACACIA_FENCE_GATE,
+                Material.BIRCH_FENCE_GATE,
+                Material.DARK_OAK_FENCE_GATE,
+                Material.JUNGLE_FENCE_GATE,
+                Material.SPRUCE_FENCE_GATE,
+                Material.WOOD_DOOR,
+                Material.ACACIA_DOOR,
+                Material.BIRCH_DOOR,
+                Material.DARK_OAK_DOOR,
+                Material.JUNGLE_DOOR,
+                Material.SPRUCE_DOOR,
+                Material.WOOD_BUTTON,
+                Material.WOODEN_DOOR,
+                Material.LEVER,
+                Material.WORKBENCH,
+                Material.STONE_BUTTON,
+                Material.ITEM_FRAME};
 
         if (Arrays.asList(blacklist).contains(event.getClickedBlock().getType()))
             event.setCancelled(true);
